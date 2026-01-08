@@ -58,7 +58,7 @@ p_{base} & \text{if } u \notin V
 $$
 
 **Where:**
-* $V$: The **Structural Void** (e.g., warlord-controlled zone).
+* $V$: The **Structural Void** (e.g., sort of warlord-controlled zone).
 * $\epsilon$ (Epsilon): **Leakage Probability** ($\approx 5\%$). The chance a case leaks out of the void.
 * $p_{base}$: **Base Reporting Rate** (Normal reporting in safe areas).
 
@@ -78,6 +78,7 @@ $$
 **Rationale:** KDE is the standard method for visualizing disease "heatmaps."
 
 **Formula:**
+
 $$
 \hat{f}(x) = \frac{1}{nh} \sum_{i=1}^n K\left(\frac{x - X_i}{h}\right)
 $$
@@ -99,6 +100,7 @@ $$
 **Rationale:** This logic, used by **SaTScan**, compares the density of cases to the density of controls (population).
 
 **Formula:**
+
 $$
 RR(u) = \frac{\text{Density}(Cases \text{ at } u)}{\text{Density}(Controls \text{ at } u)}
 $$
