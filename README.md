@@ -34,15 +34,25 @@ This project is built entirely in **R**. The following packages are required for
 **Objective:** To generate a rigorous "Ground Truth" dataset that mimics the complexity of real-world surveillance data.
 
 ### Mathematical Formulation
-Instead of a simple Uniform Distribution ($H_0$), I modeled the population as an **Inhomogeneous Poisson Point Process (IPPP)**. The intensity function $\lambda(u)$ varies across the study window $W \subset \mathbb{R}^2$:
+Instead of a simple Uniform Distribution, I modeled the population as an **Inhomogeneous Poisson Point Process (IPPP)**. The intensity function $\lambda(u)$ varies across the study window $W \subset \mathbb{R}^2$:
 
-$$N(A) \sim \text{Poisson}\left(\int_A \lambda(u) du\right)$$
+$$
+N(A) \sim \text{Poisson}\left(\int_A \lambda(u) du\right)
+$$
 
 * **Background Heterogeneity:** $\lambda(u)$ is defined by Gaussian kernels to simulate urban clusters (towns) and sparse rural areas. This ensures the method is robust against natural population variance.
-* **The Censoring Mechanism:** A "Void" $V$ is defined at location $c$ with radius $r$. The reporting probability $P(\text{report})$ is conditional on location:
-    $$P(\text{report} \mid u) = \begin{cases} \epsilon & \text{if } u \in V \text{ (Leakage $\approx$ 5\%)} \\ p_{base} & \text{if } u \notin V \text{ (Normal Reporting)} \end{cases}$$
+* **The Censoring Mechanism:** A "Void" $V$ is defined at location $c$ with radius $r$. The reporting probability is conditional on location:
+
+$$
+P(\text{report} \mid u) = \begin{cases} \epsilon & \text{if } u \in V \text{ (Leakage } \approx \text{ 5\%)} \\ p_{base} & \text{if } u \notin V \text{ (Normal Reporting)} \end{cases}
+$$
 
 **Biostatistical Relevance:** Real data is never clean. By including $\epsilon$ (leakage), I ensure the void contains *some* noise points. This "messy" data breaks standard topological tools (like Vietoris-Rips) and necessitates the robust DTM approach.
+
+### Phase 1 Output
+* **Figure 1:** Visualization of the Inhomogeneous Point Process with the true void boundary overlaid.
+
+![Figure 1: Simulated Void](output/figures/Fig1_Simulated_Void.png)
 
 ---
 
@@ -52,23 +62,27 @@ $$N(A) \sim \text{Poisson}\left(\int_A \lambda(u) du\right)$$
 ### Method A: Kernel Density Estimation (KDE)
 **Rationale:** KDE is the standard method for visualizing disease "heatmaps."
 **Formula:**
-$$\hat{f}(x) = \frac{1}{nh} \sum_{i=1}^n K\left(\frac{x - X_i}{h}\right)$$
-* **The Failure:** KDE depends strictly on the presence of points. In a structural void, $n \to 0$, forcing $\hat{f}(x) \to 0$. The map inevitably shows the warlord's zone as a "Cold Spot" (Low Density), indistinguishable from an empty forest (see Figure 2A).
+$$
+\hat{f}(x) = \frac{1}{nh} \sum_{i=1}^n K\left(\frac{x - X_i}{h}\right)
+$$
+* **The Failure:** KDE depends strictly on the presence of points. In a structural void, $n \to 0$, forcing $\hat{f}(x) \to 0$. The map inevitably shows the warlord's zone as a "Cold Spot" (Low Density), indistinguishable from an empty forest.
+
+**Figure 2A Output (The Density Fallacy):**
+![Figure 2A: KDE Failure](output/figures/Fig2A_KDE_Failure.png)
 
 ### Method B: Relative Risk (Spatial Scan Statistic Logic)
 **Rationale:** This logic, used by **SaTScan**, compares the density of cases to the density of controls (population).
 **Formula:**
-$$RR(u) = \frac{\text{Density}(Cases \text{ at } u)}{\text{Density}(Controls \text{ at } u)}$$
+$$
+RR(u) = \frac{\text{Density}(Cases \text{ at } u)}{\text{Density}(Controls \text{ at } u)}
+$$
 * **The Failure:** In the simulated void, the Case Density drops to near zero (due to suppression), but the Control Density (Background Population) remains high (people still live there).
 * **Mathematical Consequence:**
     $$RR_{void} = \frac{\approx 0}{\text{High}} \to 0$$
-* **Result:** As demonstrated in **Figure 2B**, the method flags the silenced zone as a **Statistically Significant Low-Risk Cluster** ($RR \approx 0.40$). It essentially certifies the most dangerous area as the safest.
+* **Result:** As demonstrated below, the method flags the silenced zone as a **Statistically Significant Low-Risk Cluster** ($RR \approx 0.40$). It essentially certifies the most dangerous area as the safest.
 
-### Phase 2 Outputs
-* **`figures/Fig2A_KDE_Failure.png`**: KDE Heatmap showing the "Density Fallacy."
-* **`figures/Fig2B_Risk_Failure.png`**: Relative Risk Map showing the "Cluster Bias."
-
-![Relative Risk Failure](output/figures/Fig2B_Risk_Failure.png)
+**Figure 2B Output (The Cluster Bias):**
+![Figure 2B: Relative Risk Failure](output/figures/Fig2B_Risk_Failure.png)
 
 ---
 
