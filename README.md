@@ -40,12 +40,27 @@ $$
 N(A) \sim \text{Poisson}\left(\int_A \lambda(u) du\right)
 $$
 
-* **Background Heterogeneity:** $\lambda(u)$ is defined by Gaussian kernels to simulate urban clusters (towns) and sparse rural areas. This ensures the method is robust against natural population variance.
-* **The Censoring Mechanism:** A "Void" $V$ is defined at location $c$ with radius $r$. The reporting probability is conditional on location:
+**Where:**
+* $N(A)$: Number of cases in area $A$.
+* $\lambda(u)$: The **Intensity Function** (Population Density) at location $u$.
+* $\int_A$: Summation of density across the area.
+
+---
+
+**The Censoring Mechanism:**
+A "Void" $V$ is defined at location $c$ with radius $r$. The reporting probability is conditional on location:
 
 $$
-P(\text{report} \mid u) = \begin{cases} \epsilon & \text{if } u \in V \text{ (Leakage } \approx \text{ 5\%)} \\ p_{base} & \text{if } u \notin V \text{ (Normal Reporting)} \end{cases}
+P(\text{report} \mid u) = \begin{cases} 
+\epsilon & \text{if } u \in V \\ 
+p_{base} & \text{if } u \notin V 
+\end{cases}
 $$
+
+**Where:**
+* $V$: The **Structural Void** (e.g., warlord-controlled zone).
+* $\epsilon$ (Epsilon): **Leakage Probability** ($\approx 5\%$). The chance a case leaks out of the void.
+* $p_{base}$: **Base Reporting Rate** (Normal reporting in safe areas).
 
 **Biostatistical Relevance:** Real data is never clean. By including $\epsilon$ (leakage), I ensure the void contains *some* noise points. This "messy" data breaks standard topological tools (like Vietoris-Rips) and necessitates the robust DTM approach.
 
@@ -67,10 +82,18 @@ $$
 \hat{f}(x) = \frac{1}{nh} \sum_{i=1}^n K\left(\frac{x - X_i}{h}\right)
 $$
 
-* **The Failure:** KDE depends strictly on the presence of points. In a structural void, $n \to 0$, forcing $\hat{f}(x) \to 0$. The map inevitably shows the warlord's zone as a "Cold Spot" (Low Density), indistinguishable from an empty forest.
+**Where:**
+* $\hat{f}(x)$: The estimated density at location $x$.
+* $n$: Total number of observed cases.
+* $h$: The **Bandwidth** (smoothing parameter).
+* $K$: The **Kernel Function** (usually Gaussian) that spreads influence from each point $X_i$.
+
+* **The Failure:** KDE depends strictly on the presence of points ($n$). In a structural void, $n \to 0$, forcing the density $\hat{f}(x)$ to zero. The map inevitably shows the warlord's zone as a "Cold Spot," indistinguishable from an empty forest.
 
 **Figure 2A Output (The Density Fallacy):**
 ![Figure 2A: KDE Failure](output/figures/Fig2A_KDE_Failure.png)
+
+---
 
 ### Method B: Relative Risk (Spatial Scan Statistic Logic)
 **Rationale:** This logic, used by **SaTScan**, compares the density of cases to the density of controls (population).
@@ -80,7 +103,12 @@ $$
 RR(u) = \frac{\text{Density}(Cases \text{ at } u)}{\text{Density}(Controls \text{ at } u)}
 $$
 
-* **The Failure:** In the simulated void, the Case Density drops to near zero (due to suppression), but the Control Density (Background Population) remains high (people still live there).
+**Where:**
+* $RR(u)$: **Relative Risk** at location $u$.
+* $Cases$: The observed disease/crime events.
+* $Controls$: The background population at risk.
+
+* **The Failure:** In the simulated void, the Case Density drops to near zero (due to suppression), but the Control Density remains high (people still live there).
 * **Mathematical Consequence:**
     $$RR_{void} = \frac{\approx 0}{\text{High}} \to 0$$
 * **Result:** As demonstrated below, the method flags the silenced zone as a **Statistically Significant Low-Risk Cluster** ($RR \approx 0.40$). It essentially certifies the most dangerous area as the safest.
