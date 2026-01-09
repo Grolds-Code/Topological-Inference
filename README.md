@@ -1,6 +1,6 @@
 # Topological Inference for Detecting Structural Voids in Spatially Censored Epidemiological Data
 
-**Lead Researcher:** Grold Otieno Mboya  
+**Sole Investigator:** Grold Otieno Mboya  
 **Status:** Ongoing (Phases 1, 2 & 3 Complete)
 
 ---
@@ -20,8 +20,8 @@ In conflict-affected regions, disease surveillance data is often **Censored Not 
 This research introduces three specific innovations to the field of spatial epidemiology:
 
 1.  **First Application of DTM to Censorship Detection:** While Topological Data Analysis (TDA) has been used for clustering (finding high-density zones), this is the first known application of **Distance-to-Measure (DTM)** specifically designed to detect **structural censoring** (suppressed data) in conflict zones.
-2.  **Robustness to Imperfect Silencing ($\epsilon$-Leakage):** Unlike theoretical models that assume perfect censorship, our simulation framework incorporates a **5% Leakage Probability ($\epsilon=0.05$)**. We demonstrate that standard topological tools (like Vietoris-Rips complexes) fail under this noise, necessitating the robust DTM approach used here.
-3.  **The "Density Fallacy" Proof:** We provide a direct, mathematical comparison proving that density-based methods (KDE) and ratio-based methods (Relative Risk) mathematically *must* fail in silenced zones, whereas geometric methods (DTM) succeed.
+2.  **Robustness to Imperfect Silencing ($\epsilon$-Leakage):** Unlike theoretical models that assume perfect censorship, our simulation framework incorporates a **5% Leakage Probability ($\epsilon=0.05$)**. I demonstrate that standard topological tools (like Vietoris-Rips complexes) fail under this noise, necessitating the robust DTM approach used here.
+3.  **The "Density Fallacy" Proof:** I provide a direct, mathematical comparison proving that density-based methods (KDE) and ratio-based methods (Relative Risk) mathematically *must* fail in silenced zones, whereas geometric methods (DTM) succeed.
 
 ---
 
@@ -143,13 +143,13 @@ In Phase 2, I demonstrated that **counting-based methods** (KDE, SaTScan) fail b
 * **Topology asks:** "How far must I reach to find a defined mass of cases?" (Answer in Void: Very Far $\to$ **Anomaly**).
 
 ### The "Ambulance Fleet" Analogy (Why DTM Works)
-To understand why the center lights up, imagine we deploy a **fleet of ambulances** to every single coordinate on the map simultaneously. Each driver has the same instruction: *"Drive until you find 50 patients, then report your odometer reading."*
+To understand why the center lights up, imagine I deploy a **fleet of ambulances** to every single coordinate on the map simultaneously. Each driver has the same instruction: *"Drive until you find 50 patients, then report your odometer reading."*
 
 1.  **Drivers in the Safe Zone:** They find 50 patients almost immediately. **Report:** "0.5 km" (Low Signal).
 2.  **Drivers in the Rural Background:** They drive a moderate distance to collect scattered patients. **Report:** "2.0 km" (Medium Signal).
 3.  **The Driver in the Void:** This driver starts in the silenced center. He finds *zero* patients nearby. He is forced to drive **all the way out** to the boundary of the safe zone to find his quota. **Report:** "8.5 km" (EXTREME Signal).
 
-**Conclusion:** The map turns **Bright Yellow** in the center not because we chose to look there, but because that is where the "distance-to-crowd" is mathematically maximized.
+**Conclusion:** The map turns **Bright Yellow** in the center not because I chose to look there, but because that is where the "distance-to-crowd" is mathematically maximized.
 
 ### Mathematical Formulation
 I calculate the Distance-to-Measure function $d_{m_0}(x)$ for every pixel $x$ in the study grid:
