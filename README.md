@@ -1,6 +1,6 @@
 # Topological Inference for Detecting Structural Voids in Spatially Censored Epidemiological Data
 
-**Principal Investigator:** Grold Otieno Mboya  
+**Lead Researcher:** Grold Otieno Mboya  
 **Status:** Ongoing (Phases 1 & 2 Complete)
 
 ---
@@ -121,34 +121,50 @@ $$
 ---
 
 ## 6. Phase 3: The Topological Defense (Distance-to-Measure)
-**Objective:** To detect the "Structural Void" by measuring the geometric isolation of points rather than their density.
+**Objective:** To detect the "Structural Void" by measuring the geometric isolation of points rather than their local density.
 
-### The "Ambulance Test" (Plain English Logic)
-To understand why we use **Distance-to-Measure (DTM)** instead of counting cases, imagine driving an ambulance. Your rule is: *"I cannot stop driving until I have found 50 patients."*
+### The Paradigm Shift: From "Counting" to "Reaching"
+In Phase 2, I demonstrated that **counting-based methods** (KDE, SaTScan) fail because they interpret "zero reports" as "zero risk." In Phase 3, I discard the notion of density and instead measure **geometric proximity**.
 
-* **Scenario A (Safe Rural Area):** Patients are scattered thinly. You drive a medium distance to collect 50 people. **DTM Score: Medium.**
-* **Scenario B (The Warlord's Void):** You start in the silenced center. There are zero patients. You must drive *all the way out* to the "Ring of Fire" (the safe towns) to find anyone. You travel a massive distance. **DTM Score: EXTREME.**
+**The Logic:**
+* **Density asks:** "How many cases are near me?" (Answer in Void: Zero $\to$ Safe).
+* **Topology asks:** "How far must I reach to find a defined mass of cases?" (Answer in Void: Very Far $\to$ **Anomaly**).
 
-**Conclusion:** The DTM algorithm highlights the void as a **"Topological Anomaly"** (Bright Yellow) because it is mathematically distinct from the random background noise.
+### The "Ambulance Test" (Intuitive Explanation)
+To explain **Distance-to-Measure (DTM)** to non-mathematicians, I use the "Ambulance Test":
 
-### Code Implementation
-We calculate the DTM function $d_{m_0}(x)$ for every pixel $x$ on the map:
+Imagine an ambulance driver with a strict rule: *"I cannot stop driving until I have found 50 patients."*
+1.  **In a Safe Rural Area:** Patients are scattered thinly. The driver travels a **medium distance** to collect 50 people.
+    * *DTM Signal: Low/Medium (Background).*
+2.  **In the Warlord's Void:** The driver starts in the center. There are zero patients. To find 50 people, the driver must travel **all the way out** to the boundary of the safe zone (the "Ring of Fire").
+    * *DTM Signal: **EXTREME** (High Intensity Anomaly).*
+
+### Mathematical Formulation
+I calculate the Distance-to-Measure function $d_{m_0}(x)$ for every pixel $x$ in the study grid:
 
 $$
 d_{m_0}(x) = \sqrt{\frac{1}{k} \sum_{i=1}^k ||x - X_{(i)}||^2}
 $$
 
 **Where:**
-* $x$: The location we are testing (e.g., the center of the void).
-* $X_{(i)}$: The $i$-th nearest neighbor (case).
-* $k$: The size of the "Crowd" (defined by parameter $m_0 = 0.05$).
+* $x$: The location being tested (e.g., the center of the void).
+* $X_{(i)}$: The $i$-th nearest neighbor (observed case).
+* $k$: The number of neighbors required to satisfy the mass parameter $m_0$.
+
+**Methodological Robustness ($m_0 = 0.05$):**
+In Phase 1, I defined a "Leakage Probability" of $\epsilon = 5\%$. If I simply measured the distance to the *nearest* case ($k=1$), a single leaked report inside the void would destroy the signal (the distance would drop to zero).
+* **The Fix:** I set the mass parameter $m_0 = 0.05$.
+* **The Result:** The algorithm ignores the nearest 5% of points (the noise/leakage) and seeks the stable "crowd" outside the void. This makes the detector **robust to imperfect censorship**.
 
 ### Phase 3 Outputs
-**Figure 3A:** The "Anomaly Map." The void, previously hidden as a "Cold Spot" in Phase 2, now glows as a **High-Intensity Anomaly**.
+
+**Figure 3A: The Topological Anomaly Map**
+The void, previously hidden as a "Cold Spot" in Phase 2, now glows as a **High-Intensity Anomaly** (Bright Yellow). The algorithm successfully identifies the region as geometrically distinct from the background.
 
 ![Figure 3A: Topological Anomaly](output/figures/Fig3A_Topological_Anomaly.png)
 
-**Figure 3B:** The Victory Comparison. Side-by-side proof that Geometry (Right) succeeds where Density (Left) fails.
+**Figure 3B: The Methodological Victory**
+A side-by-side comparison proving that Geometry (Right) succeeds where Density (Left) fails.
 
 ![Figure 3B: Comparison Panel](output/figures/Fig3B_Comparison_Panel.png)
 
@@ -157,7 +173,7 @@ $$
 ## 5. Project Roadmap
 * **[x] Phase 1:** Construction of the Inhomogeneous Point Process (Ground Truth).
 * **[x] Phase 2:** Demonstration of the "Straw Man" Fallacy (KDE/SaTScan Failure).
-* **[x] Phase 3:** Implementation of Distance-to-Measure (DTM) filtration.
+* **[ ] Phase 3:** Implementation of Distance-to-Measure (DTM) filtration.
 * **[ ] Phase 4:** Persistence Landscape statistical inference and permutation testing.
 
 ---
