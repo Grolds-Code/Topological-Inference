@@ -311,11 +311,11 @@ This research uses **synthetic data** to avoid privacy concerns. However, the me
 ---
 
 ## 12. Completed Project Roadmap
-* ** Phase 1:** Construction of the Inhomogeneous Point Process (Ground Truth).
-* ** Phase 2:** Demonstration of the "Straw Man" Fallacy (KDE/SaTScan Failure).
-* ** Phase 3:** Implementation of Distance-to-Measure (DTM) filtration.
-* ** Phase 4:** Statistical Inference via Permutation Testing (P-Value Calculation).
-* ** Phase 5:** Sensitivity Analysis and Robustness Checks ($N=999$).
+* **Phase 1:** Construction of the Inhomogeneous Point Process (Ground Truth).
+* **Phase 2:** Demonstration of the "Straw Man" Fallacy (KDE/SaTScan Failure).
+* **Phase 3:** Implementation of Distance-to-Measure (DTM) filtration.
+* **Phase 4:** Statistical Inference via Permutation Testing (P-Value Calculation).
+* **Phase 5:** Sensitivity Analysis and Robustness Checks ($N=999$).
 
 ## Future Work
 
