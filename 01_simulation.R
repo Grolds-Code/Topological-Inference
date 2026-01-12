@@ -1,16 +1,14 @@
-# ==============================================================================
 # PROJECT: THE GEOMETRY OF SILENCE
 # PHASE 1: REALISTIC DATA SIMULATION & DATA MANAGEMENT
-# ==============================================================================
 
-# --- 1. LIBRARIES & SETUP ---
+# 1. LIBRARIES and SETUP
 if(!require(pacman)) install.packages("pacman")
 pacman::p_load(spatstat, ggplot2, dplyr, ggforce, viridis, sf, here)
 
 # Set seed for reproducibility (Legacy Year)
 set.seed(2026) 
 
-# --- 2. PROJECT ARCHITECTURE (File Management) ---
+# 2. PROJECT ARCHITECTURE (File Management) 
 # We define a structured output system. 
 # This ensures "tables and figures" are saved automatically.
 

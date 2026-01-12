@@ -1,9 +1,7 @@
-# ==============================================================================
 # PROJECT: ROBUST TOPOLOGICAL INFERENCE
 # PHASE 3: THE TOPOLOGICAL DEFENSE (Distance-to-Measure)
-# ==============================================================================
 
-# --- 1. SETUP & LIBRARIES ---
+# --- 1. SETUP , LIBRARIES ---
 if(!require(pacman)) install.packages("pacman")
 pacman::p_load(spatstat, ggplot2, dplyr, sf, viridis, ggforce, TDA, patchwork, here)
 
@@ -45,7 +43,7 @@ dtm_df <- data.frame(
   dtm_value = dtm_result
 )
 
-# --- 4. THE CRITICAL TEST (Your Verification) ---
+# 4. THE CRITICAL TEST (Your Verification)
 message("Running Statistical Verification...")
 
 # Identify void area
@@ -64,8 +62,7 @@ void_stats <- dtm_df %>%
 print(void_stats)
 # CHECK: TRUE (Void) mean_dtm should be SIGNIFICANTLY HIGHER than FALSE (Outside)
 
-# --- 5. VISUALIZATION: THE ANOMALY MAP ---
-
+# 5. VISUALIZATION: THE ANOMALY MAP
 # We normalize DTM to 0-1 for plotting, but we DO NOT invert it.
 # High Value = High Distance = High Anomaly
 dtm_df$anomaly_score <- (dtm_df$dtm_value - min(dtm_df$dtm_value)) / 
@@ -90,7 +87,7 @@ p_dtm <- ggplot(dtm_df, aes(x, y, fill = anomaly_score)) +
 ggsave(file.path(figures_dir, "Fig3A_Topological_Anomaly.png"), p_dtm, width=8, height=8, dpi=300)
 print(p_dtm)
 
-# --- 6. THE MOMENT OF TRUTH: COMPARISON PLOT ---
+#6. THE MOMENT OF TRUTH: COMPARISON PLOT 
 
 message("Generating Comparison Panel...")
 

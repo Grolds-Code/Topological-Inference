@@ -1,32 +1,38 @@
+![R](https://img.shields.io/badge/R-%23276DC3.svg?style=for-the-badge&logo=r&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Phases%201--5%20Complete-green.svg?style=for-the-badge)
+
 # Topological Inference for Detecting Structural Voids in Spatially Censored Epidemiological Data
 
 **Sole Investigator:** Grold Otieno Mboya  
-**Status:** Ongoing (Phases 1, 2 & 3 Complete)
+**Status:** Complete (Phases 1–5)
 
 ---
 
 ## 1. Abstract & Epidemiological Rationale
-In conflict-affected regions, disease surveillance data is often **Censored Not at Random (CNAR)**. High-risk zones controlled by warlords or subject to extreme stigma often report *zero* cases, not because they are safe, but because they are silenced.
+In conflict-affected regions, disease surveillance data is rarely complete. It is often **Censored Not at Random (CNAR)**. High-risk zones controlled by warlords or subject to extreme stigma frequently report *zero* cases—not because the population is healthy, but because they are silenced.
 
-**The Problem:** Standard epidemiological tools (Kernel Density Estimation, SaTScan) rely on **Spatial Scan Statistic Logic**, which assumes that low case counts imply low risk. When applied to censored data, these tools dangerously misclassify "Structural Voids" (silenced zones) as "Low-Risk Clusters," potentially diverting humanitarian aid away from the areas that need it most.
+**The Core Issue:** Standard epidemiological tools like Kernel Density Estimation (KDE) and SaTScan rely on **Spatial Scan Statistic Logic**. They assume that a low case count implies low risk. When you feed them censored data, these tools misclassify "Structural Voids" (silenced zones) as "Low-Risk Clusters." This is a dangerous error that can divert humanitarian aid away from the specific areas that need it most.
 
-**The Solution:** This project proposes a novel framework using **Topological Data Analysis (TDA)**—specifically **Distance-to-Measure (DTM)**—to distinguish between:
+**My Solution:** I developed a framework using **Topological Data Analysis (TDA)**—specifically **Distance-to-Measure (DTM)**—to distinguish between two types of silence:
 1.  **Stochastic Voids:** Areas with no cases because no one lives there (True Low Risk).
 2.  **Structural Voids:** Areas with dense populations but suppressed reporting (High Risk).
+
+**Statistical Validation:** Permutation testing confirmed the topological void's statistical significance ($p = 0.02$). This provides rigorous evidence that the detected suppression zone is a real structural feature, not just random variation in case reporting.
 
 ---
 
 ## 2. Novelty & Contribution Statement
-This research introduces three specific innovations to the field of spatial epidemiology:
+My research introduces three specific innovations to spatial epidemiology:
 
-1.  **First Application of DTM to Censorship Detection:** While Topological Data Analysis (TDA) has been used for clustering (finding high-density zones), this is the first known application of **Distance-to-Measure (DTM)** specifically designed to detect **structural censoring** (suppressed data) in conflict zones.
-2.  **Robustness to Imperfect Silencing ($\epsilon$-Leakage):** Unlike theoretical models that assume perfect censorship, our simulation framework incorporates a **5% Leakage Probability ($\epsilon=0.05$)**. I demonstrate that standard topological tools (like Vietoris-Rips complexes) fail under this noise, necessitating the robust DTM approach used here.
+1.  **First Application of DTM to Censorship Detection:** While Topological Data Analysis (TDA) is often used for clustering (finding high-density zones), this is the first application of **Distance-to-Measure (DTM)** designed specifically to detect **structural censoring** (suppressed data) in conflict zones.
+2.  **Robustness to Imperfect Silencing ($\epsilon$-Leakage):** Theoretical models often assume perfect censorship. My simulation framework incorporates a **5% Leakage Probability ($\epsilon=0.05$)** to mimic real-world messiness. I demonstrate that standard topological tools (like Vietoris-Rips complexes) fail under this noise, necessitating the robust DTM approach used here.
 3.  **The "Density Fallacy" Proof:** I provide a direct, mathematical comparison proving that density-based methods (KDE) and ratio-based methods (Relative Risk) mathematically *must* fail in silenced zones, whereas geometric methods (DTM) succeed.
 
 ---
 
 ## 3. Technical Stack & Dependencies
-This project is built entirely in **R**. The following packages are required for reproducibility:
+The project is built entirely in **R**. The following packages are required for reproducibility:
 
 | Package | Usage in Project |
 | :--- | :--- |
@@ -71,7 +77,7 @@ $$
 * $\epsilon$ (Epsilon): **Leakage Probability** ($\approx 5\%$). The chance a case leaks out of the void.
 * $p_{base}$: **Base Reporting Rate** (Normal reporting in safe areas).
 
-**Biostatistical Relevance:** Real data is never clean. By including $\epsilon$ (leakage), I ensure the void contains *some* noise points. This "messy" data breaks standard topological tools (like Vietoris-Rips) and necessitates the robust DTM approach.
+**Biostatistical Relevance:** Real data is never clean. By including $\epsilon$ (leakage), I ensure the void contains *some* noise points. This "messy" data breaks standard topological tools and necessitates the robust DTM approach.
 
 ### Phase 1 Output
 * **Figure 1:** Visualization of the Inhomogeneous Point Process with the true void boundary overlaid.
@@ -128,7 +134,7 @@ $$
 
 **Figure 2B Output (The Cluster Bias):**
 ![Figure 2B: Relative Risk Failure](output/figures/Fig2B_Risk_Failure.png)
-> **Interpretation:** The method calculates a **Statistically Significant Low-Risk Cluster** ($RR \approx 0.40$). It essentially certifies the silenced zone as "Safe," creating a false negative that could block humanitarian aid.
+> **Interpretation:** The method calculates a **Statistically Significant Low-Risk Cluster** ($RR \approx 0.40$). It certifies the silenced zone as "Safe," creating a false negative that could block humanitarian aid.
 
 ---
 
@@ -187,26 +193,113 @@ A side-by-side comparison proving that Geometry (Right) succeeds where Density (
 
 ---
 
-## 7. Key Results Summary
+## 7. Phase 4: Statistical Inference (The Mathematical Proof)
+**Objective:** To mathematically prove that the detected void is not just a visual artifact or random noise.
+
+### Methodology: Monte Carlo Permutation Test
+I test the **Null Hypothesis ($H_0$)** that the observed cases follow **Complete Spatial Randomness (CSR)**.
+
+#### 1. The Test Statistic ($T$)
+I define the "Void Score" as the **L2 Norm** of the Persistence Landscape (Dimension 1). This single number quantifies the total "magnitude" of all topological voids in the dataset.
+
+$$
+T(X) = ||\lambda||_2 = \sqrt{\int \lambda(t)^2 dt}
+$$
+
+**Where:**
+* $T(X)$: The "Void Score" (Test Statistic) for point pattern $X$.
+* $\lambda(t)$: The **Persistence Landscape Function**. It represents the lifespan of topological features (voids) across different scales $t$.
+* $\int \dots dt$: The integral (sum) over the entire domain of scales.
+* **Interpretation:** A higher $T(X)$ means the data contains large, persistent holes that survive across many spatial scales.
+
+#### 2. The Permutation Procedure
+Since the distribution of $T$ is unknown, I approximate it numerically:
+1.  I calculate the score for my real data: $T_{obs} = T(X_{obs})$.
+2.  I generate $N=99$ random datasets ($X_{null}^{(1)}, \dots, X_{null}^{(N)}$) using a Homogeneous Poisson Process (CSR) with the same intensity as the data.
+3.  I calculate the score $T_{null}^{(i)}$ for each random dataset.
+
+#### 3. P-Value Calculation
+The p-value estimates the probability of observing a void this large purely by chance.
+
+$$
+\hat{p} = \frac{1 + \sum_{i=1}^{N} \mathbb{I}(T_{null}^{(i)} \ge T_{obs})}{1 + N}
+$$
+
+**Where:**
+* $\hat{p}$: The estimated P-value.
+* $N$: The number of permutations (99).
+* $T_{obs}$: The test statistic of the **observed** (real) data.
+* $T_{null}^{(i)}$: The test statistic of the $i$-th **random** simulation.
+* $\mathbb{I}(\cdot)$: The **Indicator Function**. It equals **1** if the random score is greater than or equal to the observed score, and **0** otherwise.
+* **Logic:** I count how many times a random noise pattern produced a "void" bigger than the real one.
+
+### Phase 4 Output
+**Figure 4: Statistical Significance Plot**
+![Figure 4: Statistical Inference](output/figures/Fig4_Statistical_Inference_Enhanced.png)
+> **Interpretation:** The Red Line (Observed Data) falls far outside the distribution of random noise (Blue Histogram). The statistical gap confirms that the void is topologically distinct from random background noise with **Statistical Significance ($p = 0.02$, significant at $\alpha = 0.05$)**.
+
+---
+
+## 8. Phase 5: Sensitivity Analysis (Robustness Check)
+**Objective:** To ensure the findings are not dependent on arbitrary parameter choices (specifically, the filtration scale).
+
+I tested the algorithm across a range of spatial scales (Max Scale: 1.0 km – 3.0 km) using a high-precision permutation test ($N=999$).
+
+### Results and The "Topological Horizon"
+The sensitivity analysis revealed a **topological horizon** for the detection method. At a filtration scale of 1.0 km, the statistical significance diminished ($p > 0.05$), indicating that the scale was insufficient to bridge the leakage points within the void. However, for all scales $\ge 1.5$ km, the p-value remained robustly significant ($p < 0.01$). This confirms that while the method requires a minimum search radius to function, it is highly stable once that geometric threshold is crossed.
+
+### Phase 5 Outputs
+
+**Figure 5A: Initial High-Precision Scan (The Horizon Effect)**
+![Figure 5: Sensitivity Analysis High Res](output/figures/Fig5_Sensitivity_Analysis_HighRes.png)
+> **Note:** The missing data point at 1.0km represents a p-value > 0.1, illustrating the "Topological Horizon" where the scanner is too short-sighted to see the void.
+
+**Figure 5B: Adjusted Scale View**
+![Figure 5: Sensitivity Analysis Fixed](output/figures/Fig5_Sensitivity_Analysis_Fixed.png)
+> **Interpretation:** This view confirms that once the scale exceeds 1.5km, the signal becomes statistically bulletproof (p < 0.01) and stable.
+
+---
+
+## 9. Operationalizing the Signal (Discussion)
+The ultimate goal of this research is to translate mathematical anomalies into public health action.
+
+**Triangulation of Evidence:**
+The Topological Anomaly is not a final diagnosis; it is an investigative lead. The anomaly must be triangulated with population density layers. A high DTM value (high isolation) occurring in a region of high population density ($P > P_{threshold}$) serves as the specific signature of **Structural Censoring**. This allows authorities to distinguish between unpopulated wilderness (natural voids) and suppressed communities (structural voids).
+
+| Signal | Population Density | Conclusion | Action |
+| :--- | :--- | :--- | :--- |
+| **High DTM (Void)** | **Low / Zero** | **Empty Forest** | Ignore (Natural) |
+| **High DTM (Void)** | **High** | **Suppressed Zone** | **INVESTIGATE (Anomaly)** |
+| **Low DTM (Cluster)**| **High** | **Outbreak** | Send Medicine |
+
+**Policy Implication:**
+The detection of a topological anomaly forces a shift in public health policy. It serves as an **early-warning system** that alerts responders to **structural silencing**. Instead of interpreting zero reports as safety, the epidemiologist is compelled to investigate the void as a potential reservoir of hidden infection, thereby preventing resources from being diverted away from the most vulnerable, unrepresented populations.
+
+---
+
+## 10. Key Results Summary
 
 | Method | Void Detection? | Risk in Void | Interpretation Error |
 | :--- | :--- | :--- | :--- |
 | **KDE** | ❌ No | Appears as "low density" | "This area is safe" (FALSE) |
 | **Relative Risk** | ❌ No | Appears as "low risk cluster" | "No intervention needed" (FALSE) |
-| **DTM (Our method)** | ✅ **Yes** | Flagged as "high anomaly" | "Investigate here - data gap detected" (CORRECT) |
+| **DTM (My method)** | ✅ **Yes** | Flagged as "high anomaly" | "Investigate here - data gap detected" (CORRECT) |
 
-**Quantitative Results:**
-* **DTM Signal in Void:** ~1.60 km (High isolation)
-* **Global DTM Background:** ~0.50 km (Normal isolation)
-* **Signal Strength:** The void signal is **~3.2x higher** than the background ($p < 0.001$).
+**Quantitative Validation:**
+* **Observed Void Score:** 4.86 (High Intensity)
+* **Mean Null Score:** 1.22 (CSR Baseline)
+* **Effect Size (Z-Score):** > 3.5 (The signal is >3 standard deviations above noise)
+* **P-Value:** 0.02 (Significant at $\alpha = 0.05$)
+* **N Permutations:** 99 (99 for testing, 999 used for robustness check)
+* **Robustness:** Confirmed for all scales $\ge 1.5$ km.
 
 ---
 
-## 8. Limitations & Ethics
+## 11. Limitations & Ethics
 
 ### Limitations
 1.  **Computational Intensity:** DTM requires $O(n^2)$ distance calculations; larger datasets (>100,000 points) may require optimization.
-2.  **Parameter Selection:** The $m_0$ parameter (0.05) currently relies on domain knowledge about leakage rates; future work will focus on automated selection via persistence diagrams.
+2.  **Parameter Selection:** The $m_0$ parameter (0.05) currently relies on domain knowledge about leakage rates.
 3.  **2D-Only Implementation:** Real epidemiology often requires spatiotemporal (3D) or network-based analyses.
 
 ### Ethics Statement
@@ -217,16 +310,34 @@ This research uses **synthetic data** to avoid privacy concerns. However, the me
 
 ---
 
-## 9. Project Roadmap
-* **[x] Phase 1:** Construction of the Inhomogeneous Point Process (Ground Truth).
-* **[x] Phase 2:** Demonstration of the "Straw Man" Fallacy (KDE/SaTScan Failure).
-* **[x] Phase 3:** Implementation of Distance-to-Measure (DTM) filtration.
-* **[ ] Phase 4:** Persistence Landscape statistical inference and permutation testing.
+## 12. Completed Project Roadmap
+* ** Phase 1:** Construction of the Inhomogeneous Point Process (Ground Truth).
+* ** Phase 2:** Demonstration of the "Straw Man" Fallacy (KDE/SaTScan Failure).
+* ** Phase 3:** Implementation of Distance-to-Measure (DTM) filtration.
+* ** Phase 4:** Statistical Inference via Permutation Testing (P-Value Calculation).
+* ** Phase 5:** Sensitivity Analysis and Robustness Checks ($N=999$).
+
+## Future Work
+
+Building on this foundation, several important extensions are planned:
+1. **Methodological Robustness**: Further investigation of parameter stability across diverse epidemiological contexts.
+2. **Computational Optimization**: Addressing scalability for application to national-scale surveillance datasets.
+3. **Integration Frameworks**: Developing interfaces with existing public health information systems.
+
+*Detailed technical specifications and next-phase algorithms are being prepared for subsequent publications.*
+
+## Frequently Asked Questions
+
+**Q: Why choose m₀ = 0.05?** A: This matches the 5% leakage probability in the simulation. In practice, this parameter should be tuned based on expected reporting suppression rates.
+
+**Q: Can this work with real Ministry of Health data?** A: Yes, but requires population denominator data (census/population estimates) which is often the limiting factor.
+
+**Q: How does this compare to other TDA methods like Mapper?** A: DTM is specifically designed for sparse, noisy data. Mapper is better for finding clusters in dense, high-dimensional data.
 
 ---
 
 ## Citation & Usage
-This repository contains the source code for the ongoing research project: *"Topological Inference for Detecting Structural Voids."*
+This repository contains the source code for the research project: *The Geometry of Silence*.
 
 **Usage:**
 This code is open for academic review and reproduction of results. If you utilize this framework in your own research, please cite the forthcoming manuscript (citation pending) or reference this repository:
