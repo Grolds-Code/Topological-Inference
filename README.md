@@ -2,10 +2,14 @@
 ![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Phases%201--5%20Complete-green.svg?style=for-the-badge)
 
+![Preprint](https://img.shields.io/badge/Preprint-10.5281%2Fzenodo.18228387-blue.svg?style=for-the-badge)
+![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18228387.svg)
+
 # Topological Inference for Detecting Structural Voids in Spatially Censored Epidemiological Data
 
 **Sole Investigator:** Grold Otieno Mboya  
 **Status:** Complete (Phases 1–5)
+**Manuscript Status:** This repository accompanies the preprint **"The Geometry of Silence"** (DOI: 10.5281/zenodo.18228387). The code and documentation here allow full reproduction of all results, figures, and analyses presented in the manuscript.
 
 ---
 
@@ -44,6 +48,20 @@ The project is built entirely in **R**. The following packages are required for 
 | **`ggforce`** | Drawing accurate geometric annotations (circles/void boundaries). |
 
 ---
+## Quick Start (Reproducing Results)
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Grolds-Code/Topological-Inference.git
+   cd Topological-Inference
+
+install.packages(c("spatstat", "ggplot2", "sf", "TDA", "viridis", "ggforce"))
+
+source("scripts/phase1_simulation.R")  # Generate synthetic data
+source("scripts/phase2_comparison.R")  # Run KDE and RR methods
+source("scripts/phase3_dtm_analysis.R") # Perform topological detection
+source("scripts/phase4_inference.R")   # Statistical testing
+source("scripts/phase5_sensitivity.R") # Robustness analysis
 
 ## 4. Phase 1: The Digital Laboratory (Simulation)
 **Objective:** To generate a rigorous "Ground Truth" dataset that mimics the complexity of real-world surveillance data.
@@ -335,14 +353,34 @@ Building on this foundation, several important extensions are planned:
 **Q: How does this compare to other TDA methods like Mapper?** A: DTM is specifically designed for sparse, noisy data. Mapper is better for finding clusters in dense, high-dimensional data.
 
 ---
+## Reproducibility Statement
 
-## Citation & Usage
-This repository contains the source code for the research project: *The Geometry of Silence*.
+This project includes:
+- **Complete R scripts** for all 5 phases of analysis
+- **Parameter files** documenting all simulation settings
+- **Seed management** for deterministic random number generation
+- **Version-locked environment** recommendations (see `sessionInfo.txt`)
 
-**Usage:**
-This code is open for academic review and reproduction of results. If you utilize this framework in your own research, please cite the forthcoming manuscript (citation pending) or reference this repository:
+To ensure exact reproducibility:
+1. Use R version ≥ 4.3.0
+2. Set random seed: `set.seed(20260615)`
+3. Follow the execution order in `/scripts/`
 
-> Mboya Grold Otieno. (2026). *The Geometry of Silence: Topological Surveillance Framework*. GitHub Repository. https://github.com/Grolds-Code/Topological-Inference
+All simulated data is regenerated from code; no external data dependencies exist.
+
+## Citation
+
+If this work contributes to your research, please cite:
+
+**Preprint (Recommended):**
+```bibtex
+@article{mboya2024geometry,
+  title={The Geometry of Silence: Topological Inference for Detecting Structural Voids in Spatially Censored Epidemiological Data},
+  author={Mboya, Grold Otieno},
+  journal={Preprint on Zenodo},
+  year={2026},
+  doi={10.5281/zenodo.18228387}
+}
 
 **License:**
 MIT License - You are free to use, modify, and distribute this software, provided proper credit is given to the original author.
