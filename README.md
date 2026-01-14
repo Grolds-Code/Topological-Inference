@@ -8,8 +8,9 @@
 # Topological Inference for Detecting Structural Voids in Spatially Censored Epidemiological Data
 
 **Sole Investigator:** Grold Otieno Mboya  
-**Manuscript Status:** This repository accompanies the preprint **"The Geometry of Silence"** (DOI: 10.5281/zenodo.18228387). The code and documentation here allow full reproduction of all results, figures, and analyses presented in the manuscript.
+**Manuscript Status:** This repository accompanies the preprint **"The Geometry of Silence"** (DOI: 10.5281/zenodo.18228387). The code and documentation here allow full reproduction of all results, figures, and analyses presented in the manuscript.  
 **Status:** Complete (Phases 1–5)
+
 ---
 
 ## 1. Abstract & Epidemiological Rationale
@@ -374,5 +375,6 @@ If this work contributes to your research, please cite:
   doi={10.5281/zenodo.18228387}
 }
 
-**License:**
+## License
+
 MIT License - You are free to use, modify, and distribute this software, provided proper credit is given to the original author.
