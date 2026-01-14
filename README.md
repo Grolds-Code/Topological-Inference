@@ -8,9 +8,8 @@
 # Topological Inference for Detecting Structural Voids in Spatially Censored Epidemiological Data
 
 **Sole Investigator:** Grold Otieno Mboya  
+**Manuscript Status:** This repository accompanies the preprint **"The Geometry of Silence"** (DOI: 10.5281/zenodo.18228387). The code and documentation here allow full reproduction of all results, figures, and analyses presented in the manuscript.  
 **Status:** Complete (Phases 1–5)
-**Manuscript Status:** This repository accompanies the preprint **"The Geometry of Silence"** (DOI: 10.5281/zenodo.18228387). The code and documentation here allow full reproduction of all results, figures, and analyses presented in the manuscript.
-
 ---
 
 ## 1. Abstract & Epidemiological Rationale
@@ -55,13 +54,6 @@ The project is built entirely in **R**. The following packages are required for 
    git clone https://github.com/Grolds-Code/Topological-Inference.git
    cd Topological-Inference
 
-install.packages(c("spatstat", "ggplot2", "sf", "TDA", "viridis", "ggforce"))
-
-source("scripts/phase1_simulation.R")  # Generate synthetic data
-source("scripts/phase2_comparison.R")  # Run KDE and RR methods
-source("scripts/phase3_dtm_analysis.R") # Perform topological detection
-source("scripts/phase4_inference.R")   # Statistical testing
-source("scripts/phase5_sensitivity.R") # Robustness analysis
 
 ## 4. Phase 1: The Digital Laboratory (Simulation)
 **Objective:** To generate a rigorous "Ground Truth" dataset that mimics the complexity of real-world surveillance data.
@@ -382,5 +374,8 @@ If this work contributes to your research, please cite:
   doi={10.5281/zenodo.18228387}
 }
 
-**License:**
+## License 
+
 MIT License - You are free to use, modify, and distribute this software, provided proper credit is given to the original author.
+
+
