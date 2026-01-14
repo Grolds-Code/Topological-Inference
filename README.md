@@ -374,7 +374,7 @@ If this work contributes to your research, please cite:
   year={2026},
   doi={10.5281/zenodo.18228387}
 }
-
+---
 ## License
 
 MIT License - You are free to use, modify, and distribute this software, provided proper credit is given to the original author.
