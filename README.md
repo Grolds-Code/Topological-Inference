@@ -373,7 +373,8 @@ If this work contributes to your research, please cite:
   journal={Preprint on Zenodo},
   year={2026},
   doi={10.5281/zenodo.18228387}
-}
+}```
+
 ---
 ## License
 
