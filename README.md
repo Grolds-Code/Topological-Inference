@@ -5,7 +5,7 @@
 [![Preprint](https://img.shields.io/badge/Preprint-10.5281%2Fzenodo.18244299-blue.svg?style=for-the-badge)](https://doi.org/10.5281/zenodo.18244299)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18228387.svg)](https://doi.org/10.5281/zenodo.18228387)
 
-## 📋 Table of Contents
+##  Table of Contents
 
 - [1. Abstract & Rationale](#1-abstract--epidemiological-rationale)
 - [2. Novelty & Contribution](#2-novelty--contribution-statement)
