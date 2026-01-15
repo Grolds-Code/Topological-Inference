@@ -2,8 +2,17 @@
 ![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Phases%201--5%20Complete-green.svg?style=for-the-badge)
 
-![Preprint](https://img.shields.io/badge/Preprint-10.5281%2Fzenodo.18228387-blue.svg?style=for-the-badge)
-![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18228387.svg)
+[![Preprint](https://img.shields.io/badge/Preprint-10.5281%2Fzenodo.18244299-blue.svg?style=for-the-badge)](https://doi.org/10.5281/zenodo.18244299)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18228387.svg)](https://doi.org/10.5281/zenodo.18228387)
+
+## 📋 Table of Contents
+
+- [1. Abstract & Rationale](#1-abstract--epidemiological-rationale)
+- [2. Novelty & Contribution](#2-novelty--contribution-statement)
+- [3. Quick Start](#quick-start-reproducing-results)
+- [4. Methodology (Phases 1-5)](#4-phase-1-the-digital-laboratory-simulation)
+- [5. Key Results](#10-key-results-summary)
+- [6. Citation](#citation)
 
 # Topological Inference for Detecting Structural Voids in Spatially Censored Epidemiological Data
 
@@ -46,6 +55,23 @@ The project is built entirely in **R**. The following packages are required for 
 | **`TDA` / `TDAstats`** | Computation of Persistent Homology and DTM filtrations. |
 | **`viridis`** | Perceptually uniform color maps for accessible scientific plotting. |
 | **`ggforce`** | Drawing accurate geometric annotations (circles/void boundaries). |
+
+---
+## 📂 Repository Structure
+
+├── data/
+│   └── (Simulated data is generated on-the-fly to ensure reproducibility)
+├── scripts/
+│   ├── 01_generate_process.R    # Phase 1: Point Process Simulation
+│   ├── 02_compare_methods.R     # Phase 2: KDE vs RR Analysis
+│   ├── 03_topological_scan.R    # Phase 3: DTM Filtration
+│   ├── 04_inference.R           # Phase 4: Permutation Testing
+│   └── 05_sensitivity.R         # Phase 5: Robustness Checks
+├── output/
+│   ├── figures/                 # High-res plots for the manuscript
+│   └── results/                 # Statistical summaries
+├── DESCRIPTION                  # Package dependencies
+└── README.md                    # Project documentation
 
 ---
 ## Quick Start (Reproducing Results)
@@ -367,10 +393,11 @@ If this work contributes to your research, please cite:
 
 **Preprint (Recommended):**
 ```bibtex
-@article{mboya2024geometry,
+@article{mboya2026geometry,
   title={The Geometry of Silence: Topological Inference for Detecting Structural Voids in Spatially Censored Epidemiological Data},
   author={Mboya, Grold Otieno},
   journal={Preprint on Zenodo},
   year={2026},
-  doi={10.5281/zenodo.18228387}
+  doi={10.5281/zenodo.18244299},  
+  url={https://doi.org/10.5281/zenodo.18244299}
 }
