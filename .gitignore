@@ -1,6 +1,12 @@
-.Rproj.user
+# R history and session files
 .Rhistory
 .RData
 .Ruserdata
+
+# RStudio project user settings (keep the .Rproj file, but ignore user-specific settings)
+.Rproj.user
+
+# Mac/Windows system files
 .DS_Store
 Thumbs.db
+
