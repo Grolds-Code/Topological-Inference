@@ -59,6 +59,7 @@ The project is built entirely in **R**. The following packages are required for 
 ---
 ## 📂 Repository Structure
 
+```text
 ├── data/
 │   └── (Simulated data is generated on-the-fly to ensure reproducibility)
 ├── scripts/
