@@ -73,7 +73,7 @@ The project is built entirely in **R**. The following packages are required for 
 │   └── results/                 # Statistical summaries
 ├── DESCRIPTION                  # Package dependencies
 └── README.md                    # Project documentation
-
+```
 ---
 ## Quick Start (Reproducing Results)
 
