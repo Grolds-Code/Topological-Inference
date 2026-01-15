@@ -57,7 +57,7 @@ The project is built entirely in **R**. The following packages are required for 
 | **`ggforce`** | Drawing accurate geometric annotations (circles/void boundaries). |
 
 ---
-## 📂 Repository Structure
+##  Repository Structure
 
 ```text
 ├── data/
