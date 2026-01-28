@@ -355,6 +355,78 @@ This research uses **synthetic data** to avoid privacy concerns. However, the me
 * **Phase 4:** Statistical Inference via Permutation Testing (P-Value Calculation).
 * **Phase 5:** Sensitivity Analysis and Robustness Checks ($N=999$).
 
+## Using the TDA Engine: Interactive Void Detection
+
+### 🚀 Launch the App
+**From RStudio:** Open `app.R` and click **Run App**  
+**From R Console:** `shiny::runApp(".")`  
+**Prerequisites:** `shiny`, `leaflet`, `sf`, `TDA`, `bslib`, `shinyjs`, `raster`, `rmarkdown`, `knitr`
+
+###  Interface Overview
+- **Left Panel:** Controls & parameters
+- **Center:** Interactive map with results
+- **Right Panel:** Statistics & downloads
+- **Bottom:** Console messages
+
+###  Load Data
+**Option A – Demo Data:**
+1. Toggle **"Use Demo Dataset"** ON
+2. Choose scenario: "Central Void", "Linear Corridor", or "Multi-Void"
+3. Click **"Generate Demo Data"**
+
+**Option B – Your Data:**
+1. Prepare CSV with: `case_id, longitude, latitude, population_density`
+2. Click **Browse** and upload
+3. Verify coordinate system (default: WGS84)
+
+###  Configure Parameters
+1. **Search Radius ($m_0$):** 0.05–0.20 (5–20% of data)
+   - Urban: 0.05–0.10
+   - Rural: 0.15–0.20
+2. **Sensitivity ($\alpha$):** 0.05 default (95% confidence)
+   - Conservative: 0.01
+   - Exploratory: 0.10
+3. **Population Threshold:** ≥100 persons/km² for structural voids
+
+###  Run Analysis
+1. **Load Data** → **Set Parameters** → **Click "Run Topological Analysis"**
+2. Processing: ~10 sec per 1,000 points
+3. Monitor progress in console
+
+### 📈 Interpret Results
+- **Red Polygons:** Structural Voids (high-risk, suppressed zones)
+- **Orange Polygons:** Stochastic Voids (low-risk, natural gaps)
+- **Blue Points:** Reported cases
+- **Statistics Panel:** p-values, void counts, classifications
+
+###  Export Results
+- **Void Shapes:** Download as SHP
+- **Summary:** Download as CSV
+- **Figure:** Export as PNG
+- **Report:** Generate PDF with full analysis
+
+###  Troubleshooting
+| Issue | Solution |
+|-------|----------|
+| "Invalid CRS" | Ensure CSV has `longitude`/`latitude` columns |
+| Slow processing | Reduce data size or $m_0$ value |
+| No voids detected | Increase $m_0$ or lower $\alpha$ |
+| App crashes | Reinstall packages: `install.packages(c("shiny","leaflet","sf","TDA"))` |
+
+### Mobile Support
+- Works on desktop browsers (Chrome/Firefox recommended)
+- Limited functionality on tablets/phones (view-only)
+
+###  Quick Tips
+1. Start with demo data to learn the workflow
+2. Adjust $m_0$ based on population density
+3. Use $\alpha=0.05$ for standard 95% confidence
+4. Cross-check voids with population density layers
+5. Export SHP files for GIS integration
+
+---
+**Ready to analyze?** Launch `app.R` and begin detecting structural voids in your spatial data.
+
 ## Future Work
 
 Building on this foundation, several important extensions are planned:

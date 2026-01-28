@@ -1,6 +1,6 @@
 # Ignore R Project files (This is what you asked for)
 *.Rproj
-.Rproj
+.Rproj.user
 
 # Ignore History and Session Data
 .Rhistory
