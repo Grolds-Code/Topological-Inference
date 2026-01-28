@@ -7,7 +7,9 @@
 .RData
 .Ruserdata
 
+
 # Ignore System Files
+.RDataTmp
 .DS_Store
 Thumbs.db
 git
