@@ -15,4 +15,4 @@ Thumbs.db
 git
 
 # Ignore Generated Data (Optional)
-output/figures/*.png
+# output/figures/*.png
