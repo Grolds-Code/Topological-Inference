@@ -1,7 +1,7 @@
 ![R](https://img.shields.io/badge/R-%23276DC3.svg?style=for-the-badge&logo=r&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Phases%201--5%20Complete-green.svg?style=for-the-badge)
-[Live Demo](https://gro7d.shinyapps.io/TDA-Engine-Preview/).
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Active-2ea44f?style=for-the-badge&logo=googlechrome&logoColor=white)](https://gro7d.shinyapps.io/TDA-Engine-Preview/)
 
 [![Preprint](https://img.shields.io/badge/Preprint-10.5281%2Fzenodo.18244299-blue.svg?style=for-the-badge)](https://doi.org/10.5281/zenodo.18244299)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18228387.svg)](https://doi.org/10.5281/zenodo.18228387)
