@@ -8,10 +8,8 @@
 #
 # Author: Mboya Grold Otieno
 # Date: January 2026
-# DOI: 10.5281/zenodo.18244299 [Preprint]
+# DOI: 10.64898/2026.02.01.26345283 [Preprint]
 # -------------------------------------------------------------------------
-
-
 
 library(shiny)
 library(leaflet)
@@ -254,7 +252,7 @@ ui <- page_sidebar(
                 ),
                 div(
                   class = "small text-muted mt-1",
-                  "Mboya, G. O. (2026). The Geometry of Silence: Topological Inference for Detecting Structural Voids in Spatially Censored Epidemiological Data. Zenodo. https://doi.org/10.5281/zenodo.18244299"
+                  "Mboya, G. O. (2026). TDA Engine v1.0: A Computational Framework for Detecting Structural Voids in Spatially Censored Epidemiological Data. MedRXiv. http://dx.doi.org/10.64898/2026.02.01.26345283"
                 )
               )
             )
@@ -746,6 +744,10 @@ ui <- tagList(
 # -------------------------------------------------------------------------
 server <- function(input, output, session) {
   
+  # ========== SECURITY & PERFORMANCE SETTINGS ==========
+  options(shiny.maxRequestSize = 10 * 1024^2)  # 10MB file limit
+  options(shiny.sanitize.errors = TRUE)        # Hide technical errors
+  
   # STATE MANAGEMENT
   v <- reactiveValues(
     data = NULL,
@@ -757,8 +759,78 @@ server <- function(input, output, session) {
     rings = NULL
   )
   
+  # ========== SECURE VALIDATION FUNCTION ==========
+  validate_and_sanitize_csv <- function(filepath) {
+    tryCatch({
+      # 1. Check file size (max 10MB for demo)
+      if (file.size(filepath) > 10 * 1024 * 1024) {
+        stop("File too large (max 10MB for demo)")
+      }
+      
+      # 2. Read with safety limits
+      df <- read.csv(
+        filepath, 
+        stringsAsFactors = FALSE,
+        encoding = "UTF-8",
+        na.strings = c("", "NA", "NULL"),
+        nrows = 5000,  # Limit to 5000 rows for demo
+        colClasses = "character"  # Read as text first
+      )
+      
+      # 3. Clean column names
+      colnames(df) <- make.names(colnames(df))
+      names(df) <- tolower(names(df))
+      
+      # 4. Find coordinate columns (flexible)
+      has_lat <- any(c("lat", "latitude") %in% names(df))
+      has_lon <- any(c("long", "longitude", "lng", "lon") %in% names(df))
+      
+      if (!(has_lat & has_lon)) {
+        stop("CSV must contain 'latitude' and 'longitude' columns")
+      }
+      
+      # 5. Standardize column names
+      if ("latitude" %in% names(df)) df$lat <- df$latitude
+      if ("longitude" %in% names(df)) df$long <- df$longitude
+      if ("lng" %in% names(df)) df$long <- df$lng
+      if ("lon" %in% names(df)) df$long <- df$lon
+      
+      # 6. Convert to numeric and remove invalid
+      df$lat <- as.numeric(df$lat)
+      df$long <- as.numeric(df$long)
+      
+      # Remove rows with NA coordinates
+      df <- df[complete.cases(df[, c("lat", "long")]), ]
+      
+      if (nrow(df) == 0) {
+        stop("No valid coordinates found in file")
+      }
+      
+      # 7. Validate coordinate ranges
+      valid_coords <- df$lat >= -90 & df$lat <= 90 & 
+        df$long >= -180 & df$long <= 180
+      
+      if (sum(valid_coords) == 0) {
+        stop("Coordinates outside valid ranges (lat: -90 to 90, long: -180 to 180)")
+      }
+      
+      df <- df[valid_coords, c("long", "lat")]
+      
+      # 8. Limit to 3000 points for demo performance
+      max_points <- 3000
+      if (nrow(df) > max_points) {
+        df <- df[sample(1:nrow(df), max_points), ]
+        # Note: This will show in status, not as popup
+      }
+      
+      return(df)
+      
+    }, error = function(e) {
+      stop(paste("File validation failed:", e$message))
+    })
+  }
+  
   # HELPER FUNCTION: Minimum Enclosing Circle (MEC) using Welzl algorithm
-  # This finds the smallest circle that contains all points
   minimum_enclosing_circle <- function(points) {
     if (nrow(points) == 0) return(NULL)
     
@@ -848,28 +920,15 @@ server <- function(input, output, session) {
     if (is.null(v$data)) init_demo()
   })
   
-  # 2. FILE UPLOAD HANDLER - SUPPRESS ERROR POPUPS
+  # 2. FILE UPLOAD HANDLER - SECURE VERSION
   observeEvent(input$upload, {
     req(input$upload)
     
     tryCatch({
-      df <- read.csv(input$upload$datapath, stringsAsFactors = FALSE)
-      names(df) <- tolower(names(df))
+      # Use secure validation function
+      df <- validate_and_sanitize_csv(input$upload$datapath)
       
-      # Flexible column name detection
-      if ("longitude" %in% names(df)) df$long <- df$longitude
-      if ("lng" %in% names(df)) df$long <- df$lng
-      if ("lon" %in% names(df)) df$long <- df$lon
-      if ("latitude" %in% names(df)) df$lat <- df$latitude
-      
-      if (!all(c("lat", "long") %in% names(df))) {
-        # SUPPRESS ERROR POPUP - update status instead
-        updateStatus("Error: CSV must contain 'lat' and 'long'", "error")
-        shinyjs::reset("upload")
-        return()
-      }
-      
-      v$data <- df[, c("long", "lat")]
+      v$data <- df
       v$mode <- "upload"
       v$results <- NULL
       v$floating_btn_text <- "SCAN FILE"
@@ -878,10 +937,17 @@ server <- function(input, output, session) {
       
       # Update UI
       updateStatistics(nrow(v$data), 0, 0)
-      updateStatus("File loaded", "ready")
+      updateStatus("File loaded and validated", "success")
       updateFooterTime()
       updateFloatingButton()
       runjs("hideResults();")
+      
+      # Clean up file after reading
+      on.exit({
+        if (file.exists(input$upload$datapath)) {
+          file.remove(input$upload$datapath)
+        }
+      })
       
       # Fit map to uploaded data
       leafletProxy("map_main") %>% 
@@ -905,13 +971,9 @@ server <- function(input, output, session) {
           lat2 = max(df$lat, na.rm = TRUE) + 0.01
         )
       
-      # Use status update instead of notification
-      updateStatus("File loaded successfully", "success")
-      
     }, error = function(e) {
+      updateStatus(paste("Upload failed:", e$message), "error")
       shinyjs::reset("upload")
-      # SUPPRESS ERROR POPUP - update status instead
-      updateStatus("Error loading file", "error")
     })
   })
   
@@ -927,7 +989,6 @@ server <- function(input, output, session) {
       clearGroup("center") %>%
       setView(34.65, -0.35, 10)
     
-    # Use status update instead of notification
     updateStatus("Reset to demo data", "success")
   })
   
@@ -1032,7 +1093,6 @@ server <- function(input, output, session) {
           threshold <- quantile(DTM_values, probs = 1 - sensitivity, na.rm = TRUE)
           
           # CRITICAL: Only consider regions where DTM is significantly higher than local median
-          # This helps find voids INSIDE clusters
           local_median_threshold <- median(DTM_values) * 1.5
           
           incProgress(0.7, detail = "Step 6: Creating void polygons...")
@@ -1044,7 +1104,6 @@ server <- function(input, output, session) {
               crs = "+init=epsg:32736"
             )
           }, error = function(e) {
-            # SUPPRESS ERROR POPUP
             updateStatus("Warning: Raster creation issue", "warning")
             return(NULL)
           })
@@ -1054,21 +1113,37 @@ server <- function(input, output, session) {
             return()
           }
           
-          # Create binary raster - HIGH DTM values = potential structural voids
+          # IMPROVED: Find MODERATELY high DTM values (inside voids), not extreme (outside)
           r_binary <- r_utm
-          # Apply BOTH thresholds: high DTM AND significantly above local median
-          raster::values(r_binary) <- ifelse(
-            raster::values(r_binary) > threshold & 
-              raster::values(r_binary) > local_median_threshold, 
-            1, NA
-          )
+          dtm_vals <- raster::values(r_binary)
+          
+          # Calculate IQR for DTM values
+          dtm_q25 <- quantile(dtm_vals, 0.25, na.rm = TRUE)
+          dtm_q75 <- quantile(dtm_vals, 0.75, na.rm = TRUE)
+          dtm_iqr <- dtm_q75 - dtm_q25
+          
+          # CRITICAL: Voids INSIDE clusters have DTM values that are:
+          # 1. Above threshold (moderately high)
+          # 2. Above local median (locally significant)
+          # 3. NOT extreme outliers (those are outside empty areas)
+          # 4. Within reasonable distance from points (already filtered)
+          
+          # Upper bound: Don't take extreme outliers (those are outside areas)
+          upper_bound <- dtm_q75 + (2 * dtm_iqr)  # Modified Tukey's fence
+          
+          # Void condition: moderately high but not extreme
+          is_void <- dtm_vals > threshold & 
+            dtm_vals > local_median_threshold &
+            dtm_vals <= upper_bound &  # NOT extreme values
+            !is.na(dtm_vals)
+          
+          raster::values(r_binary) <- ifelse(is_void, 1, NA)
           
           # Check for voids
           if (!all(is.na(raster::values(r_binary)))) {
             void_polygons <- tryCatch({
               raster::rasterToPolygons(r_binary, dissolve = TRUE)
             }, error = function(e) {
-              # SUPPRESS ERROR POPUP
               updateStatus("Warning: Polygon extraction issue", "warning")
               return(NULL)
             })
@@ -1105,7 +1180,6 @@ server <- function(input, output, session) {
                 }
                 
                 # CRITICAL: Determine structural vs stochastic voids
-                # Structural voids are large and surrounded by data points
                 void_sf_wgs84$is_structural <- FALSE
                 
                 # For each void, check if it's inside the convex hull and has significant area
@@ -1121,9 +1195,6 @@ server <- function(input, output, session) {
                   min_distance <- min(distances)
                   
                   # Structural void criteria from paper:
-                  # 1. Significant area (> 1 km²)
-                  # 2. Surrounded by data points (not at edge)
-                  # 3. Inside cluster (not in empty regions)
                   if (void_area > 1.0 && as.numeric(min_distance) < (5000)) { # Within 5km of data
                     void_sf_wgs84$is_structural[i] <- TRUE
                   }
@@ -1215,9 +1286,6 @@ server <- function(input, output, session) {
                     )
                 }
                 
-                # Use status update instead of notification
-                updateStatus(paste("Found", v$results$structural_count, "structural void(s)"), "success")
-                
                 incProgress(1, detail = "Complete!")
                 return()
               }
@@ -1250,7 +1318,6 @@ server <- function(input, output, session) {
           incProgress(1, detail = "Complete!")
           
         }, error = function(e) {
-          # SUPPRESS ERROR POPUP - update status instead
           updateStatus(paste("Error:", e$message), "error")
           handleNoVoids(v$data)
           return()
@@ -1271,13 +1338,29 @@ server <- function(input, output, session) {
     ")
   }
   
+  # ========== SAFE ANALYSIS WRAPPER ==========
+  safe_tda_analysis <- function() {
+    tryCatch({
+      # Simple rate limiting - prevent rapid clicks
+      last_run <- isolate(v$analysis_time)
+      if (!is.null(last_run) && difftime(Sys.time(), last_run, units = "secs") < 5) {
+        updateStatus("Please wait 5 seconds between analyses", "warning")
+        return()
+      }
+      
+      run_tda_analysis()
+    }, error = function(e) {
+      updateStatus("Analysis failed. Please try again.", "error")
+    })
+  }
+  
   # 5. ACTION BUTTON HANDLERS
   observeEvent(input$run_scan, {
-    run_tda_analysis()
+    safe_tda_analysis()
   })
   
   observeEvent(input$run_floating_scan, {
-    run_tda_analysis()
+    safe_tda_analysis()
   })
   
   # 6. MAP CONTROLS
@@ -1516,8 +1599,8 @@ server <- function(input, output, session) {
         <div class='footer'>
           <hr>
           <p><strong>Generated by TDA Engine v1.0</strong></p>
-          <p>Mboya, G. O. (2026). The Geometry of Silence: Topological Inference for Detecting Structural Voids in Spatially Censored Epidemiological Data.</p>
-          <p>DOI: <a href='https://doi.org/10.5281/zenodo.18244299' target='_blank'>10.5281/zenodo.18244299</a></p>
+          <p>Mboya, G. O. (2026). TDA Engine v1.0: A Computational Framework for Detecting Structural Voids in Spatially Censored Epidemiological Data.</p>
+          <p>DOI: <a href='http://dx.doi.org/10.64898/2026.02.01.26345283' target='_blank'>10.64898/2026.02.01.26345283</a></p>
         </div>
       </body>
       </html>
@@ -1745,6 +1828,40 @@ server <- function(input, output, session) {
 # -------------------------------------------------------------------------
 ui <- tagList(
   ui,
+  tags$head(
+    tags$style(HTML("
+      /* Your existing CSS styles */
+    ")),
+    
+    # ========== SESSION TIMEOUT SCRIPT ==========
+    tags$script(HTML("
+      // Session timeout after 30 minutes of inactivity
+      var idleTime = 0;
+      
+      function resetIdleTime() {
+        idleTime = 0;
+      }
+      
+      // Increment every minute
+      var idleInterval = setInterval(function() {
+        idleTime++;
+        if (idleTime > 30) { // 30 minutes
+          clearInterval(idleInterval);
+          alert('Session expired due to inactivity. Page will refresh.');
+          window.location.reload();
+        }
+      }, 60000);
+      
+      // Reset on user activity
+      $(document).on('mousemove keypress click scroll', resetIdleTime);
+      
+      // Cleanup on page unload
+      $(window).on('beforeunload', function() {
+        clearInterval(idleInterval);
+      });
+    "))
+  ),
+  
   tags$script(HTML("
     // Create floating action button
     $(document).ready(function() {
