@@ -45,7 +45,6 @@ ui <- page_sidebar(
     class = "d-flex align-items-center justify-content-between w-100 px-3 py-2",
     style = "
       background: white;
-     
     ",
     div(
       class = "d-flex align-items-center gap-2",
@@ -244,11 +243,11 @@ ui <- page_sidebar(
               div(
                 class = "ps-3",
                 tags$a(
-                  href = "https://doi.org/10.5281/zenodo.18244299",
+                  href = "https://doi.org/10.64898/2026.02.01.26345283",
                   target = "_blank",
                   style = "font-size: 0.7rem; color: #3498db; text-decoration: none;",
                   icon("external-link-alt", style = "font-size: 0.6rem; margin-right: 4px;"),
-                  "10.5281/zenodo.18244299"
+                  "10.64898/2026.02.01.26345283"
                 ),
                 div(
                   class = "small text-muted mt-1",
@@ -398,6 +397,103 @@ ui <- page_sidebar(
               "Focus on Nyanza"
             )
           )
+        )
+      )
+    ),
+    
+    # ===== NEW: VALIDATION & SENSITIVITY CARD =====
+    card(
+      class = "mb-2 border-0",
+      style = "background: #ffffff;",
+      card_header(
+        class = "bg-transparent border-bottom py-2 px-3",
+        div(
+          class = "d-flex align-items-center gap-2",
+          icon("flask", style = "font-size: 0.8rem; color: #6b7280;"),
+          span("Validation", class = "small fw-medium")
+        )
+      ),
+      card_body(
+        class = "px-3 py-2",
+        
+        # Validation Mode Toggle
+        div(
+          class = "form-check form-switch mb-2",
+          style = "font-size: 0.75rem;",
+          tags$input(
+            type = "checkbox",
+            class = "form-check-input",
+            id = "validation_mode",
+            checked = FALSE
+          ),
+          tags$label(
+            class = "form-check-label",
+            `for` = "validation_mode",
+            span(
+              class = "d-flex align-items-center gap-1",
+              icon("mask", style = "font-size: 0.7rem;"),
+              "Simulate suppression (ground truth)"
+            )
+          )
+        ),
+        
+        conditionalPanel(
+          "input.validation_mode == true",
+          div(
+            class = "p-2 mb-2",
+            style = "background: #f8f9fa; border-radius: 4px;",
+            div(
+              class = "d-flex justify-content-between align-items-center mb-1",
+              span("Suppression radius:", class = "small text-muted"),
+              span(id = "suppress_radius_value", "2.5 km", 
+                   class = "badge bg-light text-dark")
+            ),
+            sliderInput("suppress_radius", NULL, 1, 5, 2.5, 0.5,
+                        width = "100%", ticks = FALSE, post = " km"),
+            
+            div(
+              class = "d-flex justify-content-between align-items-center mb-1 mt-2",
+              span("Removal rate:", class = "small text-muted"),
+              span(id = "removal_rate_value", "80%", 
+                   class = "badge bg-danger text-white")
+            ),
+            sliderInput("removal_rate", NULL, 0.5, 0.95, 0.8, 0.05,
+                        width = "100%", ticks = FALSE)
+          ),
+          
+          div(
+            class = "small text-muted mt-1",
+            icon("info-circle"),
+            " Creates known void for Jaccard index validation"
+          )
+        ),
+        
+        hr(style = "margin: 10px 0;"),
+        
+        # Auto-tune Button
+        div(
+          class = "d-grid gap-1 mt-2",
+          actionButton("auto_tune_threshold", 
+                       span(
+                         class = "d-flex align-items-center justify-content-center gap-2",
+                         icon("magic", style = "font-size: 0.8rem;"),
+                         span("Auto-tune sensitivity (elbow method)")
+                       ),
+                       class = "btn-outline-info btn-sm",
+                       style = "font-size: 0.75rem; padding: 0.3rem;")
+        ),
+        
+        # m₀ Analysis Button
+        div(
+          class = "d-grid gap-1 mt-2",
+          actionButton("run_m0_analysis", 
+                       span(
+                         class = "d-flex align-items-center justify-content-center gap-2",
+                         icon("chart-line", style = "font-size: 0.8rem;"),
+                         span("Analyze m₀ stability")
+                       ),
+                       class = "btn-outline-secondary btn-sm",
+                       style = "font-size: 0.75rem; padding: 0.3rem;")
         )
       )
     ),
@@ -756,7 +852,16 @@ server <- function(input, output, session) {
     analysis_time = NULL,
     floating_btn_text = "SCAN DEMO",
     debug_info = NULL,
-    rings = NULL
+    rings = NULL,
+    
+    # ===== NEW VALIDATION FIELDS =====
+    validation_mode = FALSE,
+    censoring_simulation = NULL,
+    validation_metrics = NULL,
+    m0_analysis = NULL,
+    elbow_threshold = NULL,
+    permutation_test = NULL,
+    caveats = NULL
   )
   
   # ========== SECURE VALIDATION FUNCTION ==========
@@ -829,6 +934,511 @@ server <- function(input, output, session) {
       stop(paste("File validation failed:", e$message))
     })
   }
+  
+  # ============================================================================
+  # MODULE 1: VALIDATION WITH CENSORING SIMULATION (Ground Truth)
+  # ============================================================================
+  # Transforms "synthetic data" critique into strength
+  # Creates known suppression events to validate against
+  # ----------------------------------------------------------------------------
+  
+  simulate_censoring <- function(full_data = NULL, 
+                                 suppress_center = c(34.65, -0.35),
+                                 suppress_radius = 0.025,
+                                 remove_fraction = 0.8) {
+    
+    # If no data provided, generate realistic facility-like data
+    if (is.null(full_data)) {
+      set.seed(2026)
+      n_points <- 400
+      
+      # Create realistic clusters (mimicking health facilities)
+      centers <- data.frame(
+        long = c(34.75, 34.45, 34.85, 34.55, 34.65, 34.95),
+        lat = c(-0.10, -0.28, -0.45, -0.15, -0.35, -0.25),
+        n = c(80, 70, 65, 75, 60, 50)
+      )
+      
+      full_data <- do.call(rbind, lapply(1:nrow(centers), function(i) {
+        data.frame(
+          long = rnorm(centers$n[i], centers$long[i], 0.015),
+          lat = rnorm(centers$n[i], centers$lat[i], 0.015)
+        )
+      }))
+    }
+    
+    # Calculate distances to suppression center
+    distances <- sqrt((full_data$long - suppress_center[1])^2 + 
+                        (full_data$lat - suppress_center[2])^2)
+    
+    # Identify points in suppression zone
+    in_zone <- distances <= suppress_radius
+    
+    # Create censored dataset: remove remove_fraction% of points in zone
+    n_zone <- sum(in_zone)
+    n_keep <- max(1, round(n_zone * (1 - remove_fraction)))
+    
+    if (n_zone > 0 && n_keep < n_zone) {
+      keep_indices <- which(in_zone)[sample(1:n_zone, n_keep)]
+      all_indices <- c(which(!in_zone), keep_indices)
+      censored_data <- full_data[all_indices, ]
+      
+      # Ground truth: the removed points
+      removed_indices <- which(in_zone)[!which(in_zone) %in% keep_indices]
+      ground_truth <- full_data[removed_indices, ]
+    } else {
+      censored_data <- full_data
+      ground_truth <- data.frame(long = numeric(0), lat = numeric(0))
+    }
+    
+    return(list(
+      full_data = full_data,
+      censored_data = censored_data,
+      ground_truth = ground_truth,
+      suppression_center = suppress_center,
+      suppression_radius = suppress_radius,
+      removal_rate = remove_fraction,
+      n_removed = nrow(full_data) - nrow(censored_data),
+      validation_id = paste0("CENSOR_", format(Sys.time(), "%Y%m%d_%H%M%S"))
+    ))
+  }
+  
+  # ============================================================================
+  # MODULE 2: JACCARD INDEX & SPATIAL ACCURACY METRICS
+  # ============================================================================
+  # Replaces binary detection with quantitative spatial accuracy
+  # ----------------------------------------------------------------------------
+  
+  calculate_jaccard_index <- function(detected_polygons, ground_truth_points) {
+    
+    if (nrow(ground_truth_points) == 0 || is.null(detected_polygons) || nrow(detected_polygons) == 0) {
+      return(list(jaccard = 0, dice = 0, recovery_rate = 0, centroid_error_m = NA))
+    }
+    
+    tryCatch({
+      # Convert ground truth points to convex hull polygon
+      truth_sf <- st_as_sf(ground_truth_points, coords = c("long", "lat"), crs = 4326)
+      
+      if (nrow(truth_sf) < 3) {
+        # Not enough points for polygon - use buffer
+        truth_hull <- st_buffer(st_union(truth_sf), dist = 500)  # 500m buffer
+      } else {
+        truth_hull <- st_convex_hull(st_union(truth_sf))
+      }
+      
+      # Transform to UTM for accurate area calculation
+      truth_utm <- st_transform(truth_hull, 32736)
+      truth_area <- as.numeric(st_area(truth_utm))
+      
+      # Transform detected voids to UTM
+      detected_utm <- st_transform(detected_polygons, 32736)
+      detected_union <- st_union(detected_utm)
+      detected_area <- as.numeric(st_area(detected_union))
+      
+      # Calculate intersection
+      intersection <- st_intersection(detected_union, truth_utm)
+      intersection_area <- ifelse(length(intersection) > 0, as.numeric(st_area(intersection)), 0)
+      
+      # Union area
+      union_area <- truth_area + detected_area - intersection_area
+      
+      # Jaccard = Intersection / Union
+      jaccard <- intersection_area / max(union_area, 1)
+      
+      # Dice coefficient (harmonic mean)
+      dice <- 2 * intersection_area / (truth_area + detected_area)
+      
+      # Recovery rate (how much of suppressed area was detected)
+      recovery_rate <- intersection_area / max(truth_area, 1)
+      
+      # Centroid error
+      if (length(st_geometry(detected_union)) > 0 && length(st_geometry(truth_utm)) > 0) {
+        detected_centroid <- st_centroid(detected_union)
+        truth_centroid <- st_centroid(truth_utm)
+        centroid_error <- as.numeric(st_distance(detected_centroid, truth_centroid))
+      } else {
+        centroid_error <- NA
+      }
+      
+      return(list(
+        jaccard = round(jaccard, 4),
+        dice = round(dice, 4),
+        recovery_rate = round(recovery_rate, 4),
+        centroid_error_m = round(centroid_error, 0),
+        truth_area_km2 = round(truth_area / 1e6, 2),
+        detected_area_km2 = round(detected_area / 1e6, 2),
+        intersection_area_km2 = round(intersection_area / 1e6, 2)
+      ))
+      
+    }, error = function(e) {
+      return(list(jaccard = 0, dice = 0, recovery_rate = 0, centroid_error_m = NA))
+    })
+  }
+  
+  # ============================================================================
+  # MODULE 3: ADAPTIVE THRESHOLDING - KNEEDLE ALGORITHM
+  # ============================================================================
+  # Eliminates arbitrary constants (1.5x median, 5km)
+  # Derives thresholds geometrically from data
+  # ----------------------------------------------------------------------------
+  
+  find_elbow_threshold <- function(dtm_values, sensitivity = 1.0) {
+    
+    # Remove NAs and sort
+    dtm_clean <- dtm_values[!is.na(dtm_values)]
+    if (length(dtm_clean) < 10) {
+      return(list(threshold = quantile(dtm_clean, 0.9, na.rm = TRUE), 
+                  elbow_index = NA, 
+                  elbow_value = NA))
+    }
+    
+    # Sort DTM values
+    sorted_dtm <- sort(dtm_clean)
+    n <- length(sorted_dtm)
+    x <- 1:n
+    
+    # Normalize to [0,1] for scale-invariant comparison
+    x_norm <- (x - min(x)) / (max(x) - min(x))
+    y_norm <- (sorted_dtm - min(sorted_dtm)) / (max(sorted_dtm) - min(sorted_dtm))
+    
+    # Calculate curvature (second derivative approximation)
+    dy <- diff(y_norm)
+    dx <- diff(x_norm)
+    d2y <- diff(dy) / dx[-length(dx)]
+    
+    # Smooth to reduce noise
+    if (length(d2y) > 15) {
+      d2y_smooth <- stats::filter(d2y, rep(1/5, 5), sides = 2)
+      d2y_smooth[is.na(d2y_smooth)] <- d2y[is.na(d2y_smooth)]
+      elbow_idx <- which.max(abs(d2y_smooth)) + 3
+    } else {
+      elbow_idx <- which.max(abs(d2y)) + 2
+    }
+    
+    # Bound elbow index
+    elbow_idx <- max(3, min(elbow_idx, n - 1))
+    
+    # Adaptive threshold: value at elbow * sensitivity
+    adaptive_threshold <- sorted_dtm[elbow_idx] * sensitivity
+    
+    # Also return the quantile level for UI feedback
+    quantile_level <- ecdf(sorted_dtm)(adaptive_threshold)
+    
+    return(list(
+      threshold = adaptive_threshold,
+      elbow_index = elbow_idx,
+      elbow_value = sorted_dtm[elbow_idx],
+      quantile_level = quantile_level,
+      alpha = 1 - quantile_level,  # This maps to sensitivity parameter
+      dtm_sorted = sorted_dtm,
+      curvature = d2y
+    ))
+  }
+  
+  # ============================================================================
+  # MODULE 4: m₀ STABILITY ANALYSIS - DEBUG VERSION
+  # ============================================================================
+  analyze_m0_stability <- function(points_sf, 
+                                   m0_range = seq(0.01, 0.15, 0.02),
+                                   resolution_km = 1.5) {
+    
+    # ----- DEBUG: Print input info -----
+    cat("=== m0 STABILITY DEBUG ===\n")
+    cat("Points:", nrow(points_sf), "\n")
+    
+    # ----- VALIDATION -----
+    if (is.null(points_sf) || nrow(points_sf) < 10) {
+      cat("ERROR: Insufficient points\n")
+      return(list(
+        sensitivity_data = data.frame(m0 = m0_range, n_voids = NA, total_area_km2 = NA),
+        optimal_m0 = 0.05,
+        stable_range = c(0.03, 0.07),
+        plateau_detected = FALSE,
+        interpretation = "Insufficient data for stability analysis",
+        error = "Not enough points"
+      ))
+    }
+    
+    # ----- CONVERT TO UTM -----
+    tryCatch({
+      points_utm <- st_transform(points_sf, 32736)
+      X_mat <- as.matrix(st_coordinates(points_utm))
+      n_points <- nrow(X_mat)
+      cat("UTM conversion successful. n_points:", n_points, "\n")
+      
+      # ----- CREATE GRID (SIMPLIFIED) -----
+      res_meters <- resolution_km * 1000
+      cat("Resolution:", res_meters, "meters\n")
+      
+      # Get bounding box
+      bbox <- st_bbox(points_utm)
+      cat("BBox:", paste(bbox), "\n")
+      
+      # SIMPLIFIED: Fixed grid size for stability
+      n_x <- 15
+      n_y <- 15
+      
+      x_seq <- seq(bbox$xmin, bbox$xmax, length.out = n_x)
+      y_seq <- seq(bbox$ymin, bbox$ymax, length.out = n_y)
+      
+      Grid_utm <- expand.grid(X = x_seq, Y = y_seq)
+      Grid_mat <- as.matrix(Grid_utm)
+      cat("Grid created:", nrow(Grid_mat), "cells\n")
+      
+      # ----- LOOP OVER m0 VALUES -----
+      results <- data.frame(
+        m0 = m0_range,
+        n_voids = NA_real_,
+        total_area_km2 = NA_real_
+      )
+      
+      for (i in seq_along(m0_range)) {
+        m0 <- m0_range[i]
+        k <- max(2, min(ceiling(m0 * n_points), n_points - 1))
+        cat("  m0 =", m0, ", k =", k, "\n")
+        
+        # Calculate DTM - with SIMPLE fallback
+        DTM_values <- tryCatch({
+          TDA::dtm(X = X_mat, Grid = Grid_mat, m0 = m0)
+        }, error = function(e) {
+          cat("    TDA::dtm failed:", e$message, "\n")
+          cat("    Using manual calculation\n")
+          # Manual calculation for first few points only (speed)
+          apply(Grid_mat[1:min(100, nrow(Grid_mat)), , drop = FALSE], 1, function(gp) {
+            dists <- sqrt(rowSums((X_mat - matrix(gp, nrow = n_points, ncol = 2, byrow = TRUE))^2))
+            mean(sort(dists)[1:k])
+          })
+        })
+        
+        # Count voids
+        if (length(DTM_values) > 0 && !all(is.na(DTM_values))) {
+          threshold <- quantile(DTM_values, 0.9, na.rm = TRUE)
+          n_void_cells <- sum(DTM_values > threshold, na.rm = TRUE)
+          results$n_voids[i] <- n_void_cells
+          
+          # Approximate area
+          cell_area <- ((bbox$xmax - bbox$xmin) / n_x) * ((bbox$ymax - bbox$ymin) / n_y)
+          results$total_area_km2[i] <- n_void_cells * cell_area / 1e6
+          cat("    Voids:", n_void_cells, "\n")
+        } else {
+          results$n_voids[i] <- 0
+          results$total_area_km2[i] <- 0
+          cat("    No DTM values\n")
+        }
+      }
+      
+      # Find optimal m0
+      results_clean <- results[!is.na(results$n_voids), ]
+      
+      if (nrow(results_clean) >= 3) {
+        # Simple stability: look for region with least variation
+        n <- nrow(results_clean)
+        min_var <- Inf
+        optimal_idx <- which.min(abs(results_clean$m0 - 0.05))
+        
+        for (i in 1:(n-2)) {
+          var_val <- var(results_clean$n_voids[i:(i+2)], na.rm = TRUE)
+          if (!is.na(var_val) && var_val < min_var) {
+            min_var <- var_val
+            optimal_idx <- i + 1
+          }
+        }
+        
+        optimal_m0 <- results_clean$m0[optimal_idx]
+        stable_range <- c(max(0.01, optimal_m0 - 0.03), min(0.15, optimal_m0 + 0.03))
+      } else {
+        optimal_m0 <- 0.05
+        stable_range <- c(0.03, 0.07)
+      }
+      
+      cat("Optimal m0:", optimal_m0, "\n")
+      cat("Stable range:", stable_range[1], "-", stable_range[2], "\n")
+      
+      m0_05_in_range <- (0.05 >= stable_range[1] && 0.05 <= stable_range[2])
+      
+      interpretation <- if (m0_05_in_range) {
+        sprintf("Stable plateau detected: m0=0.05 is WITHIN stable range [%.2f-%.2f]",
+                stable_range[1], stable_range[2])
+      } else {
+        sprintf("Warning: m0=0.05 is OUTSIDE stable range [%.2f-%.2f]. Consider m0=%.2f",
+                stable_range[1], stable_range[2], optimal_m0)
+      }
+      
+      cat("Interpretation:", interpretation, "\n")
+      cat("=== END DEBUG ===\n\n")
+      
+      return(list(
+        sensitivity_data = results,
+        optimal_m0 = round(optimal_m0, 2),
+        stable_range = round(stable_range, 2),
+        plateau_detected = m0_05_in_range,
+        interpretation = interpretation,
+        error = NULL
+      ))
+      
+    }, error = function(e) {
+      cat("!!! CATASTROPHIC ERROR:", e$message, "\n")
+      cat("Traceback:\n")
+      print(traceback())
+      cat("=== END DEBUG ===\n\n")
+      
+      return(list(
+        sensitivity_data = data.frame(m0 = m0_range, n_voids = NA, total_area_km2 = NA),
+        optimal_m0 = 0.05,
+        stable_range = c(0.03, 0.07),
+        plateau_detected = FALSE,
+        interpretation = "Analysis failed - using default parameters",
+        error = e$message
+      ))
+    })
+  }
+  # ============================================================================
+  # MODULE 5: P-VALUE WITH CONFIDENCE INTERVALS & VOID AREA STATISTIC
+  # ============================================================================
+  # Adds statistical rigor with CIs and more robust test statistic
+  # ----------------------------------------------------------------------------
+  
+  calculate_pvalue_with_ci <- function(observed_stat, perm_stats, n_perm = 999) {
+    
+    # Calculate p-value (Davison & Hinkley 1997)
+    p_value <- (1 + sum(perm_stats >= observed_stat, na.rm = TRUE)) / (1 + n_perm)
+    
+    # Wilson score confidence interval for binomial proportion
+    z <- qnorm(0.975)  # 95% CI
+    
+    numerator <- p_value + (z^2)/(2 * n_perm)
+    denominator <- 1 + (z^2)/n_perm
+    adjustment <- z * sqrt((p_value * (1 - p_value))/n_perm + (z^2)/(4 * n_perm^2))
+    
+    ci_lower <- max(0, (numerator - adjustment) / denominator)
+    ci_upper <- min(1, (numerator + adjustment) / denominator)
+    
+    return(list(
+      p_value = p_value,
+      ci_lower = ci_lower,
+      ci_upper = ci_upper,
+      interpretation = sprintf("p = %.3f (95%% CI: %.3f-%.3f)", p_value, ci_lower, ci_upper)
+    ))
+  }
+  
+  enhanced_permutation_test <- function(observed_points, n_perm = 199) {  # Lower for performance
+    
+    req(observed_points)
+    
+    # Convert to UTM
+    points_sf <- st_as_sf(observed_points, coords = c("long", "lat"), crs = 4326)
+    points_utm <- st_transform(points_sf, 32736)
+    bbox <- st_bbox(points_utm)
+    
+    # Calculate observed DTM (simplified for permutation test)
+    X_mat <- as.matrix(st_coordinates(points_utm))
+    n_points <- nrow(X_mat)
+    
+    # Quick grid for permutation test (coarser)
+    x_seq <- seq(bbox$xmin, bbox$xmax, length.out = 20)
+    y_seq <- seq(bbox$ymin, bbox$ymax, length.out = 20)
+    Grid <- expand.grid(X = x_seq, Y = y_seq)
+    Grid_mat <- as.matrix(Grid)
+    
+    # Observed statistic
+    m0 <- 0.05
+    k <- max(2, ceiling(m0 * n_points))
+    
+    DTM_obs <- tryCatch({
+      TDA::dtm(X = X_mat, Grid = Grid_mat, m0 = m0)
+    }, error = function(e) {
+      apply(Grid_mat, 1, function(gp) {
+        dists <- sqrt(rowSums((X_mat - matrix(gp, nrow = n_points, ncol = 2, byrow = TRUE))^2))
+        mean(sort(dists)[1:k])
+      })
+    })
+    
+    # Observed void area (above 90th percentile)
+    threshold_obs <- quantile(DTM_obs, 0.9, na.rm = TRUE)
+    observed_area <- sum(DTM_obs > threshold_obs, na.rm = TRUE)
+    observed_max <- max(DTM_obs, na.rm = TRUE)
+    
+    # Permutation distribution
+    perm_area <- numeric(n_perm)
+    perm_max <- numeric(n_perm)
+    
+    withProgress(message = 'Permutation test', value = 0, {
+      for (i in 1:n_perm) {
+        # CSR: randomize points within bounding box
+        perm_points <- data.frame(
+          X = runif(n_points, bbox$xmin, bbox$xmax),
+          Y = runif(n_points, bbox$ymin, bbox$ymax)
+        )
+        perm_mat <- as.matrix(perm_points)
+        
+        DTM_perm <- tryCatch({
+          TDA::dtm(X = perm_mat, Grid = Grid_mat, m0 = m0)
+        }, error = function(e) {
+          apply(Grid_mat, 1, function(gp) {
+            dists <- sqrt(rowSums((perm_mat - matrix(gp, nrow = n_points, ncol = 2, byrow = TRUE))^2))
+            mean(sort(dists)[1:k])
+          })
+        })
+        
+        perm_area[i] <- sum(DTM_perm > threshold_obs, na.rm = TRUE)
+        perm_max[i] <- max(DTM_perm, na.rm = TRUE)
+        
+        incProgress(1/n_perm)
+      }
+    })
+    
+    # Calculate p-values with CIs
+    p_area <- calculate_pvalue_with_ci(observed_area, perm_area, n_perm)
+    p_max <- calculate_pvalue_with_ci(observed_max, perm_max, n_perm)
+    
+    return(list(
+      area_statistic = p_area,
+      max_statistic = p_max,
+      effect_size = observed_area / mean(perm_area, na.rm = TRUE),
+      observed = list(area = observed_area, max = observed_max)
+    ))
+  }
+  
+  # ============================================================================
+  # MODULE 6: SCOPE CLARIFICATION & CAVEATS
+  # ============================================================================
+  # Softens suppression claims with proper contextual language
+  # ----------------------------------------------------------------------------
+  
+  generate_caveats <- function(voids_df = NULL) {
+    
+    caveats <- list(
+      disclaimer = "⚠️ Structural voids indicate geometric anomalies, not proven suppression",
+      interpretation = "These regions are statistically unlikely under CSR and spatially coherent",
+      alternative_explanations = c(
+        "Uninhabited terrain (mountains, water bodies, protected areas)",
+        "Private facilities not in public registry",
+        "Genuine access barriers (seasonal roads, distance)",
+        "Reporting delays or administrative boundaries",
+        "Complete spatial randomness (Type I error)"
+      ),
+      required_context = c(
+        "Population density overlay",
+        "Land use classification", 
+        "Facility registry cross-check",
+        "Temporal trend analysis"
+      ),
+      recommendation = "Field validation required before operational action"
+    )
+    
+    if (!is.null(voids_df) && nrow(voids_df) > 0) {
+      caveats$void_specific <- sprintf(
+        "Void %d: %s", 
+        1:nrow(voids_df),
+        ifelse(voids_df$is_structural %in% TRUE, 
+               "Candidate for further investigation", 
+               "Low priority - natural variation")
+      )
+    }
+    
+    return(caveats)
+  }
+  
   
   # HELPER FUNCTION: Minimum Enclosing Circle (MEC) using Welzl algorithm
   minimum_enclosing_circle <- function(points) {
@@ -992,7 +1602,187 @@ server <- function(input, output, session) {
     updateStatus("Reset to demo data", "success")
   })
   
-  # 4. TDA ANALYSIS ENGINE - IMPROVED FOR DETECTING VOIDS WITHIN CLUSTERS
+  # ===== NEW: VALIDATION MODE HANDLER =====
+  observeEvent(input$validation_mode, {
+    v$validation_mode <- input$validation_mode
+    
+    if (input$validation_mode) {
+      # Generate censoring simulation using current data or demo data
+      if (!is.null(v$data) && nrow(v$data) > 100) {
+        sim <- simulate_censoring(
+          full_data = v$data,
+          suppress_radius = input$suppress_radius / 111.32,  # Convert km to degrees
+          remove_fraction = input$removal_rate
+        )
+      } else {
+        # Use built-in facility-like data
+        sim <- simulate_censoring(
+          suppress_radius = input$suppress_radius / 111.32,
+          remove_fraction = input$removal_rate
+        )
+      }
+      
+      v$censoring_simulation <- sim
+      v$data <- sim$censored_data
+      v$mode <- "validation"
+      
+      updateStatus(sprintf("Validation mode: %d points removed", sim$n_removed), "info")
+      
+      # Update map
+      leafletProxy("map_main") %>%
+        clearMarkers() %>%
+        clearGroup("cases") %>%
+        clearGroup("voids") %>%
+        clearGroup("ground_truth") %>%
+        addCircleMarkers(
+          data = sim$censored_data,
+          ~long, ~lat,
+          radius = 4,
+          color = "#2c3e50",
+          stroke = FALSE,
+          fillOpacity = 0.7,
+          group = "cases",
+          popup = "Observed (after censoring)"
+        )
+      
+      # Add ground truth points if available
+      if (nrow(sim$ground_truth) > 0) {
+        leafletProxy("map_main") %>%
+          addCircleMarkers(
+            data = sim$ground_truth,
+            ~long, ~lat,
+            radius = 4,
+            color = "#27ae60",
+            stroke = TRUE,
+            weight = 1,
+            fillColor = "#27ae60",
+            fillOpacity = 0.5,
+            group = "ground_truth",
+            popup = "Ground truth (removed points)"
+          ) %>%
+          addLegend(
+            position = "bottomright",
+            colors = c("#2c3e50", "#27ae60"),
+            labels = c("Observed (censored)", "Ground truth (removed)"),
+            opacity = 0.7,
+            title = "Validation"
+          )
+      }
+      
+    } else {
+      # Exit validation mode - restore original data
+      if (!is.null(v$censoring_simulation$full_data)) {
+        v$data <- v$censoring_simulation$full_data
+      } else {
+        init_demo()
+      }
+      
+      leafletProxy("map_main") %>%
+        clearGroup("ground_truth") %>%
+        clearControls()
+    }
+  })
+  
+  # Update slider labels
+  observeEvent(input$suppress_radius, {
+    session$sendCustomMessage("update_slider_label", 
+                              list(id = "suppress_radius_value", 
+                                   text = paste(input$suppress_radius, "km")))
+  })
+  
+  observeEvent(input$removal_rate, {
+    session$sendCustomMessage("update_slider_label", 
+                              list(id = "removal_rate_value", 
+                                   text = paste0(round(input$removal_rate * 100), "%")))
+  })
+  
+  # ===== NEW: AUTO-TUNE THRESHOLD HANDLER - FIXED =====
+  observeEvent(input$auto_tune_threshold, {
+    req(v$debug_info$dtm_vals)
+    
+    # Calculate elbow threshold
+    elbow <- find_elbow_threshold(v$debug_info$dtm_vals)
+    v$elbow_threshold <- elbow
+    
+    # Convert to alpha parameter
+    alpha <- elbow$alpha
+    
+    # Update slider if alpha is in range
+    if (!is.na(alpha) && alpha >= 0.01 && alpha <= 0.30) {
+      updateSliderInput(session, "significance", value = round(alpha, 2))
+      
+      # Use updateStatus instead of showNotification
+      updateStatus(
+        sprintf("α auto-tuned to %.2f (elbow at %.1fm)", alpha, elbow$elbow_value),
+        "success"
+      )
+      
+      # Also update the sensitivity badge
+      session$sendCustomMessage("update_sensitivity_badge", list(
+        alpha = round(alpha, 2),
+        elbow = round(elbow$elbow_value, 1)
+      ))
+      
+    } else {
+      updateStatus("Could not determine stable elbow", "warning")
+    }
+  })
+  
+  
+  # ===== m₀ STABILITY ANALYSIS HANDLER - SIMPLIFIED =====
+  observeEvent(input$run_m0_analysis, {
+    req(v$data)
+    
+    # Show processing status
+    updateStatus("Analyzing m₀ stability...", "processing")
+    
+    # Run analysis
+    tryCatch({
+      points_sf <- st_as_sf(v$data, coords = c("long", "lat"), crs = 4326)
+      
+      if (nrow(points_sf) < 30) {
+        session$sendCustomMessage("show_notification", list(
+          message = "Need at least 30 points for stability analysis",
+          type = "warning"
+        ))
+        updateStatus("Insufficient data", "warning")
+        return()
+      }
+      
+      # Run analysis
+      v$m0_analysis <- analyze_m0_stability(
+        points_sf,
+        m0_range = seq(0.01, 0.15, 0.02),
+        resolution_km = input$resolution
+      )
+      
+      # Show results via status badge instead of notification
+      stable_text <- ifelse(0.05 >= v$m0_analysis$stable_range[1] && 
+                              0.05 <= v$m0_analysis$stable_range[2],
+                            "within", "outside")
+      
+      # Update status with results
+      status_msg <- sprintf("m₀ stability: 0.05 is %s stable range [%.2f-%.2f]",
+                            stable_text,
+                            v$m0_analysis$stable_range[1],
+                            v$m0_analysis$stable_range[2])
+      
+      updateStatus(status_msg, ifelse(v$m0_analysis$plateau_detected, "success", "warning"))
+      
+      # Also update the mass parameter badge to show stability
+      session$sendCustomMessage("update_m0_badge", list(
+        stable = v$m0_analysis$plateau_detected,
+        range = sprintf("%.2f-%.2f", v$m0_analysis$stable_range[1], v$m0_analysis$stable_range[2])
+      ))
+      
+    }, error = function(e) {
+      updateStatus("m₀ analysis failed", "warning")
+    })
+  })
+  
+    # ==========================================================================
+  # 4. TDA ANALYSIS ENGINE - RESTORED
+  # ==========================================================================
   run_tda_analysis <- function() {
     req(v$data)
     
@@ -1044,9 +1834,15 @@ server <- function(input, output, session) {
           # Get bounding box of convex hull
           bbox <- sf::st_bbox(hull)
           
-          # Create grid within convex hull
-          x_seq <- seq(bbox$xmin, bbox$xmax, by = res_meters)
-          y_seq <- seq(bbox$ymin, bbox$ymax, by = res_meters)
+          # Create grid within convex hull - LIMIT SIZE for performance
+          x_range <- diff(bbox[c("xmin", "xmax")])
+          y_range <- diff(bbox[c("ymin", "ymax")])
+          
+          n_x <- min(30, max(10, floor(x_range / res_meters)))
+          n_y <- min(30, max(10, floor(y_range / res_meters)))
+          
+          x_seq <- seq(bbox$xmin, bbox$xmax, length.out = n_x)
+          y_seq <- seq(bbox$ymin, bbox$ymax, length.out = n_y)
           
           Grid_utm <- expand.grid(X = x_seq, Y = y_seq)
           
@@ -1057,10 +1853,13 @@ server <- function(input, output, session) {
           
           Grid_mat <- as.matrix(Grid_utm)
           
+          # Store grid for later use
+          v$grid <- Grid_utm
+          
           incProgress(0.3, detail = "Step 4: Calculating DTM...")
           
           # MATHEMATICAL FIX: Use m0 from your paper (0.05 for 5% leakage)
-          m0_param <- input$mass_param  # From paper: m0 = 0.05
+          m0_param <- input$mass_param
           k <- max(2, ceiling(m0_param * n_points))
           
           # Calculate DTM using TDA package
@@ -1068,15 +1867,15 @@ server <- function(input, output, session) {
             TDA::dtm(X = X_mat, Grid = Grid_mat, m0 = m0_param)
           }, error = function(e) {
             # Fallback: Manual DTM calculation
-            DTM_values <- apply(Grid_mat, 1, function(gp) {
+            apply(Grid_mat, 1, function(gp) {
               dists <- sqrt(rowSums((X_mat - matrix(gp, nrow = n_points, ncol = 2, byrow = TRUE))^2))
               mean(sort(dists)[1:k])
             })
-            return(DTM_values)
           })
           
-          # Store debug info
+          # Store DTM values for elbow method
           v$debug_info <- list(
+            dtm_vals = DTM_values,
             dtm_min = min(DTM_values, na.rm = TRUE),
             dtm_max = max(DTM_values, na.rm = TRUE),
             dtm_mean = mean(DTM_values, na.rm = TRUE),
@@ -1088,12 +1887,12 @@ server <- function(input, output, session) {
           
           incProgress(0.5, detail = "Step 5: Finding structural voids...")
           
-          # MATHEMATICAL FIX: Use quantile threshold from paper
-          sensitivity <- input$significance  # α parameter
+          # Use quantile threshold
+          sensitivity <- input$significance
           threshold <- quantile(DTM_values, probs = 1 - sensitivity, na.rm = TRUE)
           
-          # CRITICAL: Only consider regions where DTM is significantly higher than local median
-          local_median_threshold <- median(DTM_values) * 1.5
+          # Local median threshold
+          local_median_threshold <- median(DTM_values, na.rm = TRUE) * 1.5
           
           incProgress(0.7, detail = "Step 6: Creating void polygons...")
           
@@ -1101,7 +1900,7 @@ server <- function(input, output, session) {
           r_utm <- tryCatch({
             raster::rasterFromXYZ(
               data.frame(x = Grid_utm[,1], y = Grid_utm[,2], z = DTM_values),
-              crs = "+init=epsg:32736"
+              crs = 32736  # FIXED: removed +init=
             )
           }, error = function(e) {
             updateStatus("Warning: Raster creation issue", "warning")
@@ -1113,7 +1912,7 @@ server <- function(input, output, session) {
             return()
           }
           
-          # IMPROVED: Find MODERATELY high DTM values (inside voids), not extreme (outside)
+          # Find voids
           r_binary <- r_utm
           dtm_vals <- raster::values(r_binary)
           
@@ -1122,19 +1921,13 @@ server <- function(input, output, session) {
           dtm_q75 <- quantile(dtm_vals, 0.75, na.rm = TRUE)
           dtm_iqr <- dtm_q75 - dtm_q25
           
-          # CRITICAL: Voids INSIDE clusters have DTM values that are:
-          # 1. Above threshold (moderately high)
-          # 2. Above local median (locally significant)
-          # 3. NOT extreme outliers (those are outside empty areas)
-          # 4. Within reasonable distance from points (already filtered)
+          # Upper bound: Don't take extreme outliers
+          upper_bound <- dtm_q75 + (2 * dtm_iqr)
           
-          # Upper bound: Don't take extreme outliers (those are outside areas)
-          upper_bound <- dtm_q75 + (2 * dtm_iqr)  # Modified Tukey's fence
-          
-          # Void condition: moderately high but not extreme
+          # Void condition
           is_void <- dtm_vals > threshold & 
             dtm_vals > local_median_threshold &
-            dtm_vals <= upper_bound &  # NOT extreme values
+            dtm_vals <= upper_bound & 
             !is.na(dtm_vals)
           
           raster::values(r_binary) <- ifelse(is_void, 1, NA)
@@ -1149,7 +1942,7 @@ server <- function(input, output, session) {
             })
             
             if (!is.null(void_polygons) && length(void_polygons) > 0) {
-              # Convert to sf and transform back to WGS84
+              # Convert to sf
               void_sf_utm <- suppressWarnings({
                 sf::st_as_sf(void_polygons) %>%
                   sf::st_cast("POLYGON")
@@ -1159,18 +1952,18 @@ server <- function(input, output, session) {
               void_sf_utm <- void_sf_utm[!sf::st_is_empty(void_sf_utm), ]
               
               if (nrow(void_sf_utm) > 0) {
-                # Transform back to WGS84 for Leaflet
+                # Transform back to WGS84
                 void_sf_wgs84 <- sf::st_transform(void_sf_utm, crs = 4326)
                 
-                # Calculate areas in km²
+                # Calculate areas
                 void_sf_wgs84$area_km2 <- round(as.numeric(sf::st_area(void_sf_wgs84)) / 1e6, 2)
                 void_sf_wgs84$void_id <- 1:nrow(void_sf_wgs84)
                 
                 # Calculate centroids
-                centroids <- sf::st_centroid(void_sf_wgs84)
+                centroids <- sf::st_centroid(void_sf_wgs84, of_largest_polygon = TRUE)
                 centroid_coords <- sf::st_coordinates(centroids)
                 
-                # Create rings around structural voids using MEC algorithm
+                # Create rings
                 v$rings <- list()
                 for (i in 1:nrow(void_sf_wgs84)) {
                   ring <- create_ring_from_polygon(void_sf_wgs84[i, ])
@@ -1179,23 +1972,17 @@ server <- function(input, output, session) {
                   }
                 }
                 
-                # CRITICAL: Determine structural vs stochastic voids
+                # Determine structural vs stochastic voids
                 void_sf_wgs84$is_structural <- FALSE
                 
-                # For each void, check if it's inside the convex hull and has significant area
                 for (i in 1:nrow(void_sf_wgs84)) {
                   void_area <- void_sf_wgs84$area_km2[i]
-                  void_poly <- void_sf_wgs84[i, ]
+                  void_centroid <- sf::st_centroid(void_sf_wgs84[i, ], of_largest_polygon = TRUE)
                   
-                  # Check if void is inside data convex hull (not at edges)
-                  void_centroid <- sf::st_centroid(void_poly)
-                  
-                  # Calculate distance to nearest data point
                   distances <- sf::st_distance(points_sf, void_centroid)
                   min_distance <- min(distances)
                   
-                  # Structural void criteria from paper:
-                  if (void_area > 1.0 && as.numeric(min_distance) < (5000)) { # Within 5km of data
+                  if (void_area > 1.0 && as.numeric(min_distance) < 5000) {
                     void_sf_wgs84$is_structural[i] <- TRUE
                   }
                 }
@@ -1217,11 +2004,9 @@ server <- function(input, output, session) {
                                           "<em>Natural low-density area</em>"))
                   )
                 
-                # Add red rings around STRUCTURAL voids only
-                structural_count <- 0
+                # Add red rings around STRUCTURAL voids
                 for (i in 1:nrow(void_sf_wgs84)) {
                   if (void_sf_wgs84$is_structural[i] && !is.null(v$rings[[i]])) {
-                    structural_count <- structural_count + 1
                     ring <- v$rings[[i]]
                     
                     leafletProxy("map_main") %>%
@@ -1239,7 +2024,7 @@ server <- function(input, output, session) {
                   }
                 }
                 
-                # Store results
+                # ===== CRITICAL: STORE RESULTS =====
                 v$results <- list(
                   total_voids = nrow(void_sf_wgs84),
                   structural_count = sum(void_sf_wgs84$is_structural),
@@ -1254,6 +2039,27 @@ server <- function(input, output, session) {
                   rings = v$rings
                 )
                 
+                # ===== ADD VALIDATION METRICS =====
+                if (!is.null(v$validation_mode) && v$validation_mode && !is.null(v$censoring_simulation$ground_truth)) {
+                  if (nrow(v$censoring_simulation$ground_truth) >= 3) {
+                    v$validation_metrics <- calculate_jaccard_index(
+                      detected_polygons = void_sf_wgs84[void_sf_wgs84$is_structural, ],
+                      ground_truth_points = v$censoring_simulation$ground_truth
+                    )
+                    v$results$validation <- v$validation_metrics
+                  }
+                }
+                
+                # ===== ADD PERMUTATION TEST =====
+                if (nrow(df) <= 500) {
+                  v$permutation_test <- enhanced_permutation_test(df, n_perm = 99)
+                  v$results$permutation <- v$permutation_test
+                }
+                
+                # ===== ADD CAVEATS =====
+                v$caveats <- generate_caveats(void_sf_wgs84)
+                v$results$caveats <- v$caveats
+                
                 # Update statistics
                 updateStatistics(
                   nrow(df),
@@ -1264,7 +2070,7 @@ server <- function(input, output, session) {
                 updateStatus(paste("Found", v$results$structural_count, "structural voids"), "success")
                 updateFooterTime()
                 
-                # Show detailed results with debug info
+                # Show detailed results
                 showDetailedResults(void_sf_wgs84, df)
                 
                 # Auto-fit to show everything
@@ -1306,7 +2112,6 @@ server <- function(input, output, session) {
           
           handleNoVoids(df)
           
-          # Fit map to data
           leafletProxy("map_main") %>%
             fitBounds(
               lng1 = min(df$long, na.rm = TRUE) - 0.01,
@@ -1327,7 +2132,6 @@ server <- function(input, output, session) {
     
     v$analysis_time <- Sys.time()
     
-    # Auto-scroll to map
     runjs("
       setTimeout(function() {
         document.getElementById('map_section').scrollIntoView({
@@ -1715,7 +2519,6 @@ server <- function(input, output, session) {
             <tr><td>k neighbors:</td><td>%s</td></tr>
             <tr><td>Grid cells:</td><td>%s</td></tr>
           </table>
-          <p class='mb-0 small mt-1'>Based on: Mboya, G. O. (2026). The Geometry of Silence</p>
         </div>
       ",
                             v$debug_info$dtm_min,
@@ -1724,6 +2527,99 @@ server <- function(input, output, session) {
                             v$results$threshold,
                             v$debug_info$k_neighbors,
                             v$debug_info$grid_size
+      )
+    }
+    
+    # ===== NEW: VALIDATION METRICS DISPLAY =====
+    validation_html <- ""
+    if (!is.null(v$validation_metrics)) {
+      validation_html <- sprintf("
+        <div class='alert alert-success mt-2 mb-3'>
+          <h6 class='fw-bold mb-2'><i class='fa fa-check-circle'></i> Validation Against Ground Truth</h6>
+          <table class='table table-sm mb-0'>
+            <tr>
+              <td><strong>Jaccard Index:</strong></td>
+              <td>%.3f</td>
+              <td><span class='badge bg-%s'>%s</span></td>
+            </tr>
+            <tr>
+              <td><strong>Recovery Rate:</strong></td>
+              <td>%.1f%%</td>
+              <td>%s of suppressed area detected</td>
+            </tr>
+            <tr>
+              <td><strong>Centroid Error:</strong></td>
+              <td>%.0f m</td>
+              <td>%s</td>
+            </tr>
+            <tr>
+              <td><strong>Dice Coefficient:</strong></td>
+              <td>%.3f</td>
+              <td>Harmonic mean of precision/recall</td>
+            </tr>
+          </table>
+        </div>
+      ",
+                                 v$validation_metrics$jaccard,
+                                 ifelse(v$validation_metrics$jaccard > 0.7, "success", 
+                                        ifelse(v$validation_metrics$jaccard > 0.4, "warning", "danger")),
+                                 ifelse(v$validation_metrics$jaccard > 0.7, "Excellent",
+                                        ifelse(v$validation_metrics$jaccard > 0.4, "Moderate", "Poor")),
+                                 v$validation_metrics$recovery_rate * 100,
+                                 sprintf("%.1f km²", v$validation_metrics$intersection_area_km2),
+                                 v$validation_metrics$centroid_error_m,
+                                 ifelse(v$validation_metrics$centroid_error_m < 500, "High precision",
+                                        ifelse(v$validation_metrics$centroid_error_m < 1000, "Moderate", "Low precision")),
+                                 v$validation_metrics$dice
+      )
+    }
+    
+    # ===== NEW: PERMUTATION TEST DISPLAY =====
+    perm_html <- ""
+    if (!is.null(v$permutation_test)) {
+      perm_html <- sprintf("
+        <div class='alert alert-info mt-2 mb-3'>
+          <h6 class='fw-bold mb-2'><i class='fa fa-calculator'></i> Statistical Inference</h6>
+          <table class='table table-sm mb-0'>
+            <tr>
+              <td><strong>Void area test:</strong></td>
+              <td>%s</td>
+            </tr>
+            <tr>
+              <td><strong>Effect size:</strong></td>
+              <td>%.1fx larger than random</td>
+            </tr>
+          </table>
+        </div>
+      ",
+                           v$permutation_test$area_statistic$interpretation,
+                           v$permutation_test$effect_size
+      )
+    }
+    
+    # ===== NEW: CAVEATS DISPLAY =====
+    caveats_html <- ""
+    if (!is.null(v$caveats)) {
+      alt_explanations <- paste(
+        sprintf("<li>%s</li>", v$caveats$alternative_explanations[1:3]), 
+        collapse = ""
+      )
+      
+      caveats_html <- sprintf("
+        <div class='alert alert-warning mt-3 mb-0'>
+          <h6 class='fw-bold mb-2'><i class='fa fa-exclamation-triangle'></i> %s</h6>
+          <p class='small mb-1'><strong>Interpretation:</strong> %s</p>
+          <p class='small mb-1'><strong>Alternative explanations:</strong></p>
+          <ul class='small mb-1' style='padding-left: 20px;'>
+            %s
+          </ul>
+          <p class='small mb-0'><strong>Required context:</strong> %s</p>
+        </div>
+      ",
+                              v$caveats$disclaimer,
+                              v$caveats$interpretation,
+                              alt_explanations,
+                              paste(v$caveats$required_context[1:2], collapse = ", ")
       )
     }
     
@@ -1736,7 +2632,7 @@ server <- function(input, output, session) {
           ring <- v$rings[[i]]
           ring_details <- paste0(ring_details, sprintf("
             <tr>
-              <td>%s</td>
+              <td>%d</td>
               <td><span class='badge bg-danger'>Structural</span></td>
               <td>%.2f km²</td>
               <td>%.2f km</td>
@@ -1746,7 +2642,7 @@ server <- function(input, output, session) {
         } else if (!void_sf$is_structural[i]) {
           ring_details <- paste0(ring_details, sprintf("
             <tr>
-              <td>%s</td>
+              <td>%d</td>
               <td><span class='badge bg-warning'>Stochastic</span></td>
               <td>%.2f km²</td>
               <td>N/A</td>
@@ -1763,15 +2659,21 @@ server <- function(input, output, session) {
         <div class='alert alert-success border-start border-2 border-success mb-3'>
           <h6 class='fw-bold mb-1'>Topological Analysis Complete</h6>
           <p class='mb-0'>Found <strong>%s</strong> structural void(s) covering <strong>%s km²</strong></p>
-          <p class='mb-0 small'>Red warning rings drawn around structural voids (suppressed reporting zones)</p>
         </div>
+        
+        %s  <!-- Validation metrics -->
+        %s  <!-- Permutation test -->
         
         <h6 class='fw-bold mb-2' style='font-size: 0.7rem;'>Parameters</h6>
         <table class='table table-sm mb-3'>
-          <tr><td>m₀ (Mass):</td><td>%s</td></tr>
-          <tr><td>α (Sensitivity):</td><td>%s</td></tr>
-          <tr><td>Δ (Resolution):</td><td>%s km</td></tr>
-          <tr><td>Points analyzed:</td><td>%s</td></tr>
+          <tr><td>m₀ (Mass):</td><td>%s</td>
+              <td>%s</td></tr>
+          <tr><td>α (Sensitivity):</td><td>%s</td>
+              <td>%s</td></tr>
+          <tr><td>Δ (Resolution):</td><td>%s km</td>
+              <td>%s</td></tr>
+          <tr><td>Points analyzed:</td><td>%s</td>
+              <td></td></tr>
         </table>
         
         <h6 class='fw-bold mb-2' style='font-size: 0.7rem;'>Void Details</h6>
@@ -1791,23 +2693,28 @@ server <- function(input, output, session) {
             </tbody>
           </table>
         </div>
-        %s
         
-        <div class='alert alert-warning mt-3'>
-          <h6 class='fw-bold mb-1'>Interpretation Guide</h6>
-          <p class='mb-1 small'><span class='badge bg-danger'>Structural Voids</span>: Inside data clusters with red rings - potential suppressed reporting</p>
-          <p class='mb-0 small'><span class='badge bg-warning'>Stochastic Voids</span>: Natural low-density areas - no action needed</p>
-        </div>
+        %s  <!-- Debug info -->
+        %s  <!-- Caveats -->
+        
       </div>
     ",
                             v$results$structural_count,
                             v$results$structural_area,
+                            validation_html,
+                            perm_html,
                             input$mass_param,
+                            if (!is.null(v$m0_analysis) && 0.05 >= v$m0_analysis$stable_range[1] && 0.05 <= v$m0_analysis$stable_range[2]) 
+                              "<span class='badge bg-success'>stable</span>" else "<span class='badge bg-warning'>check stability</span>",
                             input$significance,
+                            if (!is.null(v$elbow_threshold)) 
+                              sprintf("<span class='badge bg-info'>elbow: %.2f</span>", v$elbow_threshold$alpha) else "",
                             input$resolution,
+                            if (input$resolution >= 1.5) "<span class='badge bg-success'>topological horizon crossed</span>" else "<span class='badge bg-warning'>below horizon</span>",
                             nrow(df),
                             ring_info_html,
-                            debug_html
+                            debug_html,
+                            caveats_html
     )
     
     session$sendCustomMessage("show_results", html_content)
@@ -2022,7 +2929,33 @@ ui <- tagList(
       // Initial typesetting
       MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
     }
-  "))
+    
+        // ===== NEW: Update sensitivity badge with elbow info =====
+    Shiny.addCustomMessageHandler('update_sensitivity_badge', function(msg) {
+      $('#sensitivity_value').html(
+        '<span>' + msg.alpha + ' <span style=\"font-size:0.6rem; margin-left:2px;\">elbow: ' + msg.elbow + 'm</span></span>'
+      );
+    });
+    
+     // ===== NEW: Update m₀ badge with stability info =====
+    Shiny.addCustomMessageHandler('update_m0_badge', function(msg) {
+      var badge = $('#mass_value');
+      if (msg.stable) {
+        badge.css({
+          'background': '#27ae6015',
+          'color': '#27ae60'
+        });
+        badge.html('<span>0.05 <span style=\"font-size:0.6rem; margin-left:2px;\">✓ stable</span></span>');
+      } else {
+        badge.css({
+          'background': '#f39c1215',
+          'color': '#f39c12'
+        });
+        badge.html('<span>0.05 <span style=\"font-size:0.6rem; margin-left:2px;\">⚠️ range: ' + msg.range + '</span></span>');
+      }
+    });
+    
+    "))
 )
 
 # -------------------------------------------------------------------------

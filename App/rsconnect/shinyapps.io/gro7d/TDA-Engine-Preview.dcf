@@ -5,6 +5,6 @@ account: gro7d
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 16611640
-bundleId: 11545824
+bundleId: 11545910
 url: https://gro7d.shinyapps.io/TDA-Engine-Preview/
 version: 1
