@@ -1,12 +1,12 @@
 # =============================================================================
-# GEOMETRY OF SILENCE — v5.1
+# GEOMETRY OF SILENCE — v2.1
 # Sentinel Silence Monitor for Disease Surveillance Systems
 #
 # Author:  Mboya Grold Otieno
 # DOI:     10.64898/2026.02.01.26345283
 # License: GPL-3.0 — see https://www.gnu.org/licenses/gpl-3.0.html
 #
-# WHAT'S NEW IN v5.1
+# WHAT'S NEW IN v2.1
 # ──────────────────
 # 1. STOCHASTIC vs STRUCTURAL VOID CLASSIFIER
 #    Each temporal void is now labelled:
@@ -53,10 +53,9 @@ suppressPackageStartupMessages({
 # =============================================================================
 WM_AUTHOR   <- "Mboya Grold Otieno"
 WM_DOI      <- "10.64898/2026.02.01.26345283"
-WM_TOOL     <- "Geometry of Silence — v5.1"
+WM_TOOL     <- "TDA Engine— v2.1"
 WM_URL      <- "https://doi.org/10.64898/2026.02.01.26345283"
-WM_CITATION <- paste0("Mboya, G. O. (2026). Geometry of Silence: ",
-                      "Topological surveillance completeness estimation. MedRxiv. doi:", WM_DOI)
+WM_CITATION <- paste0("Mboya, G. O. (2026). TDA Engine v1.0: A Computational Framework for Detecting Structural Voids in Spatially Censored Epidemiological Data. doi:", WM_DOI)
 .stamp <- function() format(Sys.time(), "%Y-%m-%d %H:%M:%S UTC")
 
 # =============================================================================
@@ -470,7 +469,7 @@ WM_CITATION <- paste0("Mboya, G. O. (2026). Geometry of Silence: ",
   df <- df[sample(nrow(df)), ]  # shuffle
   
   header <- c(
-    "# REALISTIC NOISY DHIS2-FORMAT CSV — Geometry of Silence v5.1",
+    "# REALISTIC NOISY DHIS2-FORMAT CSV — Geometry of Silence v2.1",
     paste0("# Disease: ", dis$label, "  |  Periods: ", paste(periods, collapse=", ")),
     "# This file intentionally contains DHIS2 export artifacts:",
     "#   - 15% missing submissions (facility didn't report)",
@@ -555,7 +554,7 @@ WM_CITATION <- paste0("Mboya, G. O. (2026). Geometry of Silence: ",
 }
 
 # =============================================================================
-# STOCHASTIC vs STRUCTURAL VOID CLASSIFIER  ← NEW in v5.1
+# STOCHASTIC vs STRUCTURAL VOID CLASSIFIER  ← NEW in v2.1
 # =============================================================================
 # Method 1: Fano Factor
 # Fano = Var(x) / Mean(x) for a vector x of O/E ratios across time periods.
@@ -904,7 +903,7 @@ WM_CITATION <- paste0("Mboya, G. O. (2026). Geometry of Silence: ",
 }
 
 # =============================================================================
-# CSS  — v5.1 additions: gate indicators, temporal badges, data-source panel
+# CSS  — v2.1 additions: gate indicators, temporal badges, data-source panel
 # =============================================================================
 CSS <- '
 :root{
@@ -1014,7 +1013,7 @@ html,body{height:100%;background:var(--ink);color:var(--text);
   justify-content:space-between;align-items:center}
 .fv{color:var(--amber);text-transform:none;letter-spacing:0}
 
-/* ── PROGRESSIVE INPUT GATES — NEW v5.1 ── */
+/* ── PROGRESSIVE INPUT GATES — NEW v2.1 ── */
 .stage{border:1px solid var(--edge);border-radius:var(--r);
   margin-bottom:8px;overflow:hidden;transition:opacity .25s,border-color .25s}
 .stage.locked{opacity:.38;pointer-events:none;border-color:var(--edge)}
@@ -1065,7 +1064,7 @@ html,body{height:100%;background:var(--ink);color:var(--text);
 .btn-sec:hover{border-color:var(--amber);color:var(--amber)}
 .btn-2{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px}
 
-/* DATA SOURCE PILLS — NEW v5.1 */
+/* DATA SOURCE PILLS — NEW v2.1 */
 .ds-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px}
 .ds-pill{padding:7px 8px;background:var(--card);border:1px solid var(--edge2);
   border-radius:var(--r);cursor:pointer;text-align:center;
@@ -1127,7 +1126,7 @@ html,body{height:100%;background:var(--ink);color:var(--text);
 .tp2{background:var(--purple-d);color:var(--purple);border-color:#a78bfa35}
 .tm{background:var(--card);color:var(--muted);border-color:var(--edge)}
 
-/* TEMPORAL VOID LABELS — NEW v5.1 */
+/* TEMPORAL VOID LABELS — NEW v2.1 */
 .void-structural{color:var(--red);font-weight:700}
 .void-intermittent{color:var(--amber);font-weight:700}
 .void-stochastic{color:var(--cyan);font-weight:700}
@@ -1183,7 +1182,7 @@ html,body{height:100%;background:var(--ink);color:var(--text);
   color:var(--text);line-height:1.6}
 .ac-action i{color:var(--amber);margin-right:4px}
 
-/* TEMPORAL PANEL — NEW v5.1 */
+/* TEMPORAL PANEL — NEW v2.1 */
 .temporal-card{background:var(--ink);border:1px solid var(--edge2);
   border-radius:var(--r);padding:9px;margin-top:8px}
 .temporal-card-title{font-size:9px;color:var(--amber);text-transform:uppercase;
@@ -1292,7 +1291,6 @@ html,body{height:100%;background:var(--ink);color:var(--text);
   .sbscroll{padding:6px}
 }
 @media(min-width:769px){
-  #mobmbtn{display:none!important}
   #fabrun{display:none!important}
   #fabresults{display:none!important}
 }
@@ -1323,15 +1321,15 @@ ui <- tagList(
       div(id="tb",
           div(class="tb-left",
               div(class="tb-sig", tags$i(class="fas fa-satellite-dish")),
-              span("Geometry of Silence", class="tb-name"),
-              span("v5.1", class="tb-ver", style="margin-left:6px;")
+              span("TDA Engine", class="tb-name"),
+              span("v2.1", class="tb-ver", style="margin-left:6px;")
           ),
           div(class="tb-right",
               tags$button(class="icon-btn", title="Reset all data",
                           onclick="Shiny.setInputValue('reset_app',Math.random())",
                           tags$i(class="fas fa-rotate-left")),
               tags$button(id="mobmbtn", class="icon-btn",
-                          style="display:none;", onclick="toggleSB()",
+                          onclick="toggleSB()",
                           tags$i(class="fas fa-bars-staggered"))
           )
       ),
@@ -1352,182 +1350,183 @@ ui <- tagList(
           
           # ── MAP + SIDEBAR ────────────────────────────────────────────────────
           div(id="pm", class="tp on",
-              div(id="mc", leafletOutput("map_main", width="100%", height="100%")),
-              
-              div(id="sb",
-                  tags$button(id="sb-close", class="icon-btn",
-                              onclick="toggleSB()", tags$i(class="fas fa-xmark")),
-                  div(class="sbscroll",
-                      
-                      # KPI metrics
-                      div(class="metrics",
-                          div(class="met r",
-                              div(class="mel","Critical"),
-                              div(class="mev",id="s-crit","—")),
-                          div(class="met a",
-                              div(class="mel","Moderate"),
-                              div(class="mev",id="s-mod","—")),
-                          div(class="met",
-                              div(class="mel","Voids"),
-                              div(class="mev",id="s-voids","—"))
-                      ),
-                      
-                      # ── STAGE 1: DISEASE & PERIOD ──────────────────────────────────
-                      div(id="stage1", class="stage unlocked",
-                          div(class="stage-hd",
-                              div(class="stage-num","1"),
-                              div(class="stage-title","Disease & Period"),
-                              tags$i(class="fas fa-lock-open stage-lock")
-                          ),
-                          div(class="stage-body",
-                              div(class="fg",
-                                  div(class="fl","Disease / Syndrome"),
-                                  tags$select(id="sel_disease", class="custom-select",
-                                              tags$option(value="malaria",   selected=NA, "Malaria"),
-                                              tags$option(value="cholera",   "Cholera / AWD"),
-                                              tags$option(value="tb",        "Tuberculosis (TB)"),
-                                              tags$option(value="measles",   "Measles"),
-                                              tags$option(value="maternal",  "Maternal Deaths"),
-                                              tags$option(value="meningitis","Meningitis"),
-                                              tags$option(value="hiv",       "HIV New Infections")
-                                  )
-                              ),
-                              div(class="fg",
-                                  div(class="fl","Reporting Period"),
-                                  tags$select(id="sel_period", class="custom-select",
-                                              tags$option(value="monthly",  selected=NA, "Monthly"),
-                                              tags$option(value="weekly",   "Weekly"),
-                                              tags$option(value="quarterly","Quarterly"),
-                                              tags$option(value="annual",   "Annual")
-                                  )
-                              )
-                          )
-                      ),
-                      
-                      # ── STAGE 2: DATA SOURCE ───────────────────────────────────────
-                      div(id="stage2", class="stage locked",
-                          div(class="stage-hd",
-                              div(class="stage-num","2"),
-                              div(class="stage-title","Data Source"),
-                              tags$i(class="fas fa-lock stage-lock", id="lock2")
-                          ),
-                          div(class="stage-body",
-                              div(class="ds-grid",
-                                  # Demo tile
-                                  div(class="ds-pill active", id="ds-demo",
-                                      onclick="selectDS('demo')",
-                                      div(class="ds-pill-icon", tags$i(class="fas fa-flask")),
-                                      div(class="ds-pill-lbl","Simulated Demo")
-                                  ),
-                                  # Upload tile
-                                  div(class="ds-pill", id="ds-upload",
-                                      onclick="selectDS('upload')",
-                                      div(class="ds-pill-icon", tags$i(class="fas fa-upload")),
-                                      div(class="ds-pill-lbl","Upload CSV")
-                                  ),
-                                  # WHO GHO tile
-                                  div(class="ds-pill", id="ds-who",
-                                      onclick="selectDS('who')",
-                                      div(class="ds-pill-icon", tags$i(class="fas fa-globe")),
-                                      div(class="ds-pill-lbl","WHO GHO API")
-                                  ),
-                                  # DHIS2 tile
-                                  div(class="ds-pill", id="ds-dhis2",
-                                      onclick="selectDS('dhis2')",
-                                      div(class="ds-pill-icon", tags$i(class="fas fa-database")),
-                                      div(class="ds-pill-lbl","DHIS2 / KHIS")
-                                  )
-                              ),
-                              # Hidden input to track selection
-                              tags$input(type="hidden", id="ds_choice", value="demo")
-                          )
-                      ),
-                      
-                      # ── STAGE 3: LOAD DATA ─────────────────────────────────────────
-                      div(id="stage3", class="stage locked",
-                          div(class="stage-hd",
-                              div(class="stage-num","3"),
-                              div(class="stage-title","Load Data"),
-                              tags$i(class="fas fa-lock stage-lock", id="lock3")
-                          ),
-                          div(class="stage-body",
-                              uiOutput("stage3_ui")
-                          )
-                      ),
-                      
-                      # ── STAGE 4: PARAMETERS + RUN ─────────────────────────────────
-                      div(id="stage4", class="stage locked",
-                          div(class="stage-hd",
-                              div(class="stage-num","4"),
-                              div(class="stage-title","Analyse"),
-                              tags$i(class="fas fa-lock stage-lock", id="lock4")
-                          ),
-                          div(class="stage-body",
-                              
-                              div(class="fg",
-                                  div(class="fl",
-                                      "m₀  mass parameter",
-                                      span(id="v-m0","0.10",class="fv")),
-                                  sliderInput("mass_param",NULL,0.02,0.25,0.10,0.01,
-                                              width="100%",ticks=FALSE)),
-                              div(class="fg",
-                                  div(class="fl",
-                                      "α  void sensitivity",
-                                      span(id="v-al","0.25",class="fv")),
-                                  sliderInput("alpha_param",NULL,0.05,0.50,0.25,0.01,
-                                              width="100%",ticks=FALSE)),
-                              div(class="fg",
-                                  div(class="fl",
-                                      "Min deficit threshold (O/E <)",
-                                      span(id="v-thr","0.75",class="fv")),
-                                  sliderInput("oe_threshold",NULL,0.20,0.90,0.75,0.05,
-                                              width="100%",ticks=FALSE)),
-                              
-                              div(style="margin-bottom:8px;",
-                                  tags$button(class="btn-run",
-                                              onclick="Shiny.setInputValue('run_analysis',Math.random())",
-                                              tags$i(class="fas fa-magnifying-glass-chart"),
-                                              "Detect Surveillance Gaps")
-                              ),
-                              
-                              # Temporal analysis button (enabled when history present)
-                              uiOutput("temporal_run_ui"),
-                              
-                              # Export
-                              div(class="btn-2",
-                                  downloadButton("dl_report",
-                                                 tagList(tags$i(class="fas fa-file-medical")," Brief"),
-                                                 class="btn-sec"),
-                                  downloadButton("dl_geojson",
-                                                 tagList(tags$i(class="fas fa-map")," GeoJSON"),
-                                                 class="btn-sec")
-                              ),
-                              downloadButton("dl_table",
-                                             tagList(tags$i(class="fas fa-table")," Completeness CSV"),
-                                             class="btn-sec"),
-                              downloadButton("dl_temporal",
-                                             tagList(tags$i(class="fas fa-wave-square")," Temporal Report"),
-                                             class="btn-sec")
-                          )
-                      ),
-                      
-                      # Validation section (always accessible once data loaded)
-                      uiOutput("validation_section_ui")
-                      
+              div(id="mc", leafletOutput("map_main", width="100%", height="100%"))
+          ),
+          
+          # sidebar lives outside every .tp so it is NEVER hidden by tab switch
+          div(id="sb",
+              tags$button(id="sb-close", class="icon-btn",
+                          onclick="toggleSB()", tags$i(class="fas fa-xmark")),
+              div(class="sbscroll",
+                  
+                  # KPI metrics
+                  div(class="metrics",
+                      div(class="met r",
+                          div(class="mel","Critical"),
+                          div(class="mev",id="s-crit","—")),
+                      div(class="met a",
+                          div(class="mel","Moderate"),
+                          div(class="mev",id="s-mod","—")),
+                      div(class="met",
+                          div(class="mel","Voids"),
+                          div(class="mev",id="s-voids","—"))
                   ),
                   
-                  # Status bar
-                  div(id="sbar",
-                      div(id="sdot",class="sdot ready"),
-                      tags$span(id="stxt","Step 1 — Select disease and reporting period")
-                  )
+                  # ── STAGE 1: DISEASE & PERIOD ──────────────────────────────────
+                  div(id="stage1", class="stage unlocked",
+                      div(class="stage-hd",
+                          div(class="stage-num","1"),
+                          div(class="stage-title","Disease & Period"),
+                          tags$i(class="fas fa-lock-open stage-lock")
+                      ),
+                      div(class="stage-body",
+                          div(class="fg",
+                              div(class="fl","Disease / Syndrome"),
+                              tags$select(id="sel_disease", class="custom-select",
+                                          tags$option(value="malaria",   selected=NA, "Malaria"),
+                                          tags$option(value="cholera",   "Cholera / AWD"),
+                                          tags$option(value="tb",        "Tuberculosis (TB)"),
+                                          tags$option(value="measles",   "Measles"),
+                                          tags$option(value="maternal",  "Maternal Deaths"),
+                                          tags$option(value="meningitis","Meningitis"),
+                                          tags$option(value="hiv",       "HIV New Infections")
+                              )
+                          ),
+                          div(class="fg",
+                              div(class="fl","Reporting Period"),
+                              tags$select(id="sel_period", class="custom-select",
+                                          tags$option(value="monthly",  selected=NA, "Monthly"),
+                                          tags$option(value="weekly",   "Weekly"),
+                                          tags$option(value="quarterly","Quarterly"),
+                                          tags$option(value="annual",   "Annual")
+                              )
+                          )
+                      )
+                  ),
+                  
+                  # ── STAGE 2: DATA SOURCE ───────────────────────────────────────
+                  div(id="stage2", class="stage locked",
+                      div(class="stage-hd",
+                          div(class="stage-num","2"),
+                          div(class="stage-title","Data Source"),
+                          tags$i(class="fas fa-lock stage-lock", id="lock2")
+                      ),
+                      div(class="stage-body",
+                          div(class="ds-grid",
+                              # Demo tile
+                              div(class="ds-pill active", id="ds-demo",
+                                  onclick="selectDS('demo')",
+                                  div(class="ds-pill-icon", tags$i(class="fas fa-flask")),
+                                  div(class="ds-pill-lbl","Simulated Demo")
+                              ),
+                              # Upload tile
+                              div(class="ds-pill", id="ds-upload",
+                                  onclick="selectDS('upload')",
+                                  div(class="ds-pill-icon", tags$i(class="fas fa-upload")),
+                                  div(class="ds-pill-lbl","Upload CSV")
+                              ),
+                              # WHO GHO tile
+                              div(class="ds-pill", id="ds-who",
+                                  onclick="selectDS('who')",
+                                  div(class="ds-pill-icon", tags$i(class="fas fa-globe")),
+                                  div(class="ds-pill-lbl","WHO GHO API")
+                              ),
+                              # DHIS2 tile
+                              div(class="ds-pill", id="ds-dhis2",
+                                  onclick="selectDS('dhis2')",
+                                  div(class="ds-pill-icon", tags$i(class="fas fa-database")),
+                                  div(class="ds-pill-lbl","DHIS2 / KHIS")
+                              )
+                          ),
+                          # Hidden input to track selection
+                          tags$input(type="hidden", id="ds_choice", value="demo")
+                      )
+                  ),
+                  
+                  # ── STAGE 3: LOAD DATA ─────────────────────────────────────────
+                  div(id="stage3", class="stage locked",
+                      div(class="stage-hd",
+                          div(class="stage-num","3"),
+                          div(class="stage-title","Load Data"),
+                          tags$i(class="fas fa-lock stage-lock", id="lock3")
+                      ),
+                      div(class="stage-body",
+                          uiOutput("stage3_ui")
+                      )
+                  ),
+                  
+                  # ── STAGE 4: PARAMETERS + RUN ─────────────────────────────────
+                  div(id="stage4", class="stage locked",
+                      div(class="stage-hd",
+                          div(class="stage-num","4"),
+                          div(class="stage-title","Analyse"),
+                          tags$i(class="fas fa-lock stage-lock", id="lock4")
+                      ),
+                      div(class="stage-body",
+                          
+                          div(class="fg",
+                              div(class="fl",
+                                  "m₀  mass parameter",
+                                  span(id="v-m0","0.10",class="fv")),
+                              sliderInput("mass_param",NULL,0.02,0.25,0.10,0.01,
+                                          width="100%",ticks=FALSE)),
+                          div(class="fg",
+                              div(class="fl",
+                                  "α  void sensitivity",
+                                  span(id="v-al","0.25",class="fv")),
+                              sliderInput("alpha_param",NULL,0.05,0.50,0.25,0.01,
+                                          width="100%",ticks=FALSE)),
+                          div(class="fg",
+                              div(class="fl",
+                                  "Min deficit threshold (O/E <)",
+                                  span(id="v-thr","0.75",class="fv")),
+                              sliderInput("oe_threshold",NULL,0.20,0.90,0.75,0.05,
+                                          width="100%",ticks=FALSE)),
+                          
+                          div(style="margin-bottom:8px;",
+                              tags$button(class="btn-run",
+                                          onclick="Shiny.setInputValue('run_analysis',Math.random())",
+                                          tags$i(class="fas fa-magnifying-glass-chart"),
+                                          "Detect Surveillance Gaps")
+                          ),
+                          
+                          # Temporal analysis button (enabled when history present)
+                          uiOutput("temporal_run_ui"),
+                          
+                          # Export
+                          div(class="btn-2",
+                              downloadButton("dl_report",
+                                             tagList(tags$i(class="fas fa-file-medical")," Brief"),
+                                             class="btn-sec"),
+                              downloadButton("dl_geojson",
+                                             tagList(tags$i(class="fas fa-map")," GeoJSON"),
+                                             class="btn-sec")
+                          ),
+                          downloadButton("dl_table",
+                                         tagList(tags$i(class="fas fa-table")," Completeness CSV"),
+                                         class="btn-sec"),
+                          downloadButton("dl_temporal",
+                                         tagList(tags$i(class="fas fa-wave-square")," Temporal Report"),
+                                         class="btn-sec")
+                      )
+                  ),
+                  
+                  # Validation section (always accessible once data loaded)
+                  uiOutput("validation_section_ui")
+                  
+              ),
+              
+              # Status bar
+              div(id="sbar",
+                  div(id="sdot",class="sdot ready"),
+                  tags$span(id="stxt","Step 1 — Select disease and reporting period")
               )
           ),
           
           # ── ALERTS PANEL ──────────────────────────────────────────────────────
           div(id="pr", class="tp", uiOutput("alerts_ui")),
           
-          # ── TEMPORAL ANALYSIS PANEL — NEW v5.1 ─────────────────────────────
+          # ── TEMPORAL ANALYSIS PANEL — NEW v2.1 ─────────────────────────────
           div(id="pt", class="tp",
               div(style="flex:1;overflow-y:auto;padding:16px;background:var(--ink);
                    scrollbar-width:thin;scrollbar-color:var(--edge) transparent;",
@@ -2347,59 +2346,108 @@ server <- function(input, output, session) {
     }, error=function(e) ss(paste("Error:", conditionMessage(e)),"error"))
   })
   
-  # ── TEMPORAL ANALYSIS (Stochastic vs Structural) ── NEW v5.1 ──────────
+  # ── TEMPORAL ANALYSIS (Stochastic vs Structural) ── NEW v2.1 ──────────
   
   # Button to add demo multi-period history
   output$temporal_run_ui <- renderUI({
+    n_hist <- length(v$history)
     tagList(
+      if (n_hist > 0)
+        div(style="font-size:9px;color:var(--green);margin-bottom:5px;display:flex;align-items:center;gap:5px;padding:4px 6px;background:rgba(74,222,128,.07);border-radius:4px;",
+            tags$i(class="fas fa-circle-check"),
+            sprintf("%d + 1 periods ready for temporal analysis", n_hist)),
       div(style="margin-bottom:6px;",
-          tags$button(class="btn-sec",
-                      onclick="Shiny.setInputValue('load_temporal_demo',Math.random())",
-                      tags$i(class="fas fa-wave-square"), "Load 6-Period Temporal Demo")),
-      div(style="margin-bottom:6px;",
-          tags$label(class="upload-btn",
-                     style="border-color:var(--edge);",
-                     tags$i(class="fas fa-clock-rotate-left"),
-                     tags$span(id="hist-lbl","Add historical period CSV…"),
-                     tags$input(type="file",id="hist_upload",accept=".csv",style="display:none;",
-                                onchange=paste0(
-                                  "var f=this.files[0];if(f){",
-                                  "document.getElementById('hist-lbl').textContent=f.name;",
-                                  "var r=new FileReader();r.onload=function(e){",
-                                  "Shiny.setInputValue('hist_data',{name:f.name,content:e.target.result},",
-                                  "{priority:'event'});};r.readAsText(f);}"
-                                )
-                     )
+          tags$button(
+            class="btn-run",
+            style="width:100%;font-size:11px;",
+            onclick="Shiny.setInputValue('run_temporal_auto',Math.random(),{priority:'event'})",
+            tags$i(class="fas fa-wave-square"),
+            if (n_hist == 0) " Run Temporal Analysis"
+            else " Run Temporal Analysis"
           )
       ),
-      if (length(v$history) > 0) {
-        div(style="font-size:9px;color:var(--green);margin-bottom:6px;",
-            tags$i(class="fas fa-check",style="margin-right:4px;"),
-            sprintf("%d historical period%s loaded",
-                    length(v$history), if(length(v$history)>1)"s"else""))
-      },
-      if (length(v$history) >= 2 || (length(v$history)>=1 && !is.null(v$df))) {
-        tags$button(class="btn-sec",
-                    style="border-color:var(--purple);color:var(--purple);margin-bottom:4px;",
-                    onclick="Shiny.setInputValue('run_temporal',Math.random())",
-                    tags$i(class="fas fa-flask-conical"),"Run Stochastic/Structural Analysis")
-      }
+      if (n_hist == 0)
+        div(style="font-size:8px;color:var(--muted);margin-bottom:5px;line-height:1.5;",
+            tags$i(class="fas fa-info-circle",style="margin-right:3px;color:var(--amber);"),
+            "No history? Demo 6-period data loads automatically."),
+      tags$details(
+        tags$summary(style="font-size:8.5px;color:var(--muted);cursor:pointer;margin-bottom:4px;",
+                     tags$i(class="fas fa-chevron-right",style="font-size:7px;margin-right:3px;"),
+                     "Upload your own historical CSVs"),
+        div(style="padding-top:6px;",
+            tags$label(class="upload-btn",
+                       style="border-color:var(--edge);font-size:9px;",
+                       tags$i(class="fas fa-clock-rotate-left"),
+                       tags$span(id="hist-lbl","Add historical period CSV…"),
+                       tags$input(type="file",id="hist_upload",accept=".csv",style="display:none;",
+                                  onchange=paste0(
+                                    "var f=this.files[0];if(f){",
+                                    "document.getElementById('hist-lbl').textContent=f.name;",
+                                    "var r=new FileReader();r.onload=function(e){",
+                                    "Shiny.setInputValue('hist_data',{name:f.name,content:e.target.result},",
+                                    "{priority:'event'});};r.readAsText(f);}"
+                                  ))
+            )
+        )
+      )
     )
   })
   
-  # Load 6-period temporal demo
-  observeEvent(input$load_temporal_demo, {
-    dis  <- if(!is.null(input$sel_disease)) input$sel_disease else "malaria"
-    per  <- if(!is.null(input$sel_period))  input$sel_period  else "monthly"
-    hist <- .build_demo_temporal(dis, 6)
-    # Use first period as current, rest as history
+  # helper: load 6-period demo data into v$df and v$history
+  .load_demo <- function(dis, per) {
+    hist      <- .build_demo_temporal(dis, 6)
     v$df      <- .enrich(hist[[1]], dis, per)
     v$history <- lapply(hist[-1], function(h) .enrich(h, dis, per))
-    ss(sprintf("6-period temporal demo loaded — %s", .DISEASE_REF[[dis]]$label),"ready")
     unlock(3,"complete"); unlock(4,"unlocked"); v$stage <- 4L
     .paint_completeness(v$df)
     sm(crit=sum(v$df$completeness=="Critical",na.rm=TRUE),
        mod =sum(v$df$completeness=="Moderate",na.rm=TRUE), voids="—")
+  }
+  
+  # One-click temporal: auto-loads demo if no history, then classifies
+  observeEvent(input$run_temporal_auto, {
+    dis <- if(!is.null(input$sel_disease)) input$sel_disease else "malaria"
+    per <- if(!is.null(input$sel_period))  input$sel_period  else "monthly"
+    if (length(v$history) == 0) {
+      ss("Loading demo data…","working")
+      .load_demo(dis, per)
+    }
+    all_dfs <- Filter(Negate(is.null), c(list(v$df), v$history))
+    if (length(all_dfs) < 2) { ss("Need ≥2 periods","error"); return() }
+    ss("Running temporal classification…","working")
+    tryCatch({
+      withProgress(message="Temporal Analysis",value=0,{
+        threshold <- .DISEASE_REF[[dis]]$critical
+        all_units <- unique(unlist(lapply(all_dfs, function(d) d$admin_unit)))
+        results   <- lapply(seq_along(all_units), function(ui) {
+          au   <- all_units[ui]
+          oe_v <- sapply(all_dfs, function(d) {
+            r <- d$oe_ratio[d$admin_unit == au]
+            if(length(r)==0||all(is.na(r))) NA_real_ else r[1]
+          })
+          incProgress(0.9/length(all_units))
+          c(list(admin_unit=au, oe_series=oe_v),
+            .classify_void_temporality(oe_v, threshold))
+        })
+        incProgress(1)
+        v$temporal <- list(results=results, n_periods=length(all_dfs),
+                           disease=dis, threshold=threshold, timestamp=.stamp())
+        n_s <- sum(sapply(results, function(r) r$label=="STRUCTURAL"))
+        n_r <- sum(sapply(results, function(r) r$label=="STOCHASTIC"))
+        ss(sprintf("Temporal: %d structural | %d stochastic | %d intermittent",
+                   n_s, n_r,
+                   sum(sapply(results, function(r) r$label=="INTERMITTENT"))), "success")
+        session$sendCustomMessage("goto_temporal", list())
+      })
+    }, error=function(e) ss(paste("Temporal error:", conditionMessage(e)),"error"))
+  })
+  
+  # Legacy observer (kept for back-compat)
+  observeEvent(input$load_temporal_demo, {
+    dis <- if(!is.null(input$sel_disease)) input$sel_disease else "malaria"
+    per <- if(!is.null(input$sel_period))  input$sel_period  else "monthly"
+    .load_demo(dis, per)
+    ss(sprintf("Demo loaded — %s", .DISEASE_REF[[dis]]$label),"ready")
   })
   
   # Historical period upload
@@ -3094,6 +3142,7 @@ server <- function(input, output, session) {
   
   outputOptions(output, "alerts_ui",    suspendWhenHidden=FALSE)
   outputOptions(output, "temporal_ui",  suspendWhenHidden=FALSE)
+  outputOptions(output, "temporal_run_ui", suspendWhenHidden=FALSE)
 }
 
 # Null coalescing operator (base R ≥ 4.4 has this but for safety)
