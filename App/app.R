@@ -3,7 +3,7 @@
 # Sentinel Silence Monitor for Disease Surveillance Systems
 #
 # Author:  Mboya Grold Otieno
-# DOI:     10.64898/2026.02.01.26345283
+# DOI:   10.64898/2026.02.01.26345283
 # License: GPL-3.0 — see https://www.gnu.org/licenses/gpl-3.0.html
 #
 # WHAT'S NEW IN v2.1
@@ -16,7 +16,7 @@
 #        (Fano ≈ Poisson; single-period dip, not a pattern)
 #    Method: Fano factor (variance/mean of O/E across periods) as primary
 #    classifier; 2-state HMM posterior (Viterbi path) as confidence score.
-#    No external HMM package needed — pure R EM implementation.
+#    No external HMM package needed — just pure R EM implementation.
 #
 # 2. PROGRESSIVE INPUT — INLINE REVEAL WITH VALIDATION GATES
 #    The sidebar unlocks in stages:
