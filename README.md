@@ -1,12 +1,12 @@
-![R](https://img.shields.io/badge/R-%23276DC3.svg?style=for-the-badge&logo=r&logoColor=white) ![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=for-the-badge) ![Version](https://img.shields.io/badge/App-v2.1-orange.svg?style=for-the-badge) ![Status](https://img.shields.io/badge/Status-Active%20Development-brightgreen.svg?style=for-the-badge) [![Live Demo](https://img.shields.io/badge/Live_Demo-Active-2ea44f?style=for-the-badge&logo=googlechrome&logoColor=white)](https://gro7d.shinyapps.io/TDA-Engine-Preview/) [![Preprint](https://img.shields.io/badge/Preprint-10.5281%2Fzenodo.18244299-blue.svg?style=for-the-badge)](https://doi.org/10.5281/zenodo.18244299) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18228387.svg)](https://doi.org/10.5281/zenodo.18228387)
+![R](https://img.shields.io/badge/R-%23276DC3.svg?style=for-the-badge&logo=r&logoColor=white) ![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=for-the-badge) ![Version](https://img.shields.io/badge/App-v2.1-orange.svg?style=for-the-badge) ![Status](https://img.shields.io/badge/Status-Active%20Development-brightgreen.svg?style=for-the-badge) [![Live Demo](https://img.shields.io/badge/Live_Demo-Active-2ea44f?style=for-the-badge&logo=googlechrome&logoColor=white)](https://gro7d.shinyapps.io/TDA-Engine-Preview/) [![Preprint](https://img.shields.io/badge/Preprint-MedRxiv-blue.svg?style=for-the-badge)](https://doi.org/10.64898/2026.02.01.26345283)
 
 ------------------------------------------------------------------------
 
-# The Geometry of Silence — v2.1
+# TDA — v2.1
 
 ### *Topological Inference for Detecting Structural Voids in Spatially Censored Epidemiological Data*
 
-**Sole Investigator:** Mboya Grold Otieno **Application DOI:** [10.64898/2026.02.01.26345283](https://doi.org/10.64898/2026.02.01.26345283) **Companion Preprint:** [10.5281/zenodo.18228387](https://doi.org/10.5281/zenodo.18228387) **License:** GPL-3.0
+**Sole Investigator:** Mboya Grold Otieno **Application DOI:** [10.64898/2026.02.01.26345283](https://doi.org/10.64898/2026.02.01.26345283) **License:** GPL-3.0
 
 ------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ In conflict-affected regions, disease surveillance data is rarely complete. It i
 
 **Statistical Validation:** Permutation testing confirmed the topological void's statistical significance ($p = 0.02$), providing rigorous evidence that the detected suppression zone is a real structural feature — not random variation in case reporting.
 
-This repository accompanies the preprint **"The Geometry of Silence"** ([DOI: 10.5281/zenodo.18228387](https://doi.org/10.5281/zenodo.18228387)) and allows full reproduction of all results, figures, and analyses. It also provides a **production-ready Shiny application** (v2.1) that operationalises the framework for real surveillance data.
+This repository allows full reproduction of all results, figures, and analyses. It also provides a **production-ready Shiny application** (v2.1) that operationalises the framework for real surveillance data.
 
 ------------------------------------------------------------------------
 
@@ -136,7 +136,7 @@ The study population is modelled as an **Inhomogeneous Poisson Point Process (IP
 $$N(A) \sim \text{Poisson}\!\left(\int_A \lambda(u)\, du\right)$$
 
 | Symbol | Meaning |
-|----|----|
+|------------------------------------|------------------------------------|
 | $N(A)$ | Number of cases in area $A$ |
 | $\lambda(u)$ | Intensity function (population density) at location $u$ |
 | $\int_A \lambda(u)\, du$ | Total expected cases integrated across area $A$ |
@@ -146,7 +146,7 @@ $$N(A) \sim \text{Poisson}\!\left(\int_A \lambda(u)\, du\right)$$
 $$P(\text{report} \mid u) = \begin{cases} \epsilon & \text{if } u \in V \\ p_{\text{base}} & \text{if } u \notin V \end{cases}$$
 
 | Symbol | Meaning |
-|----|----|
+|------------------------------------|------------------------------------|
 | $V$ | The structural void (e.g., conflict-controlled zone) |
 | $\epsilon$ | Leakage probability ($\approx 5\%$) — cases that escape suppression |
 | $p_{\text{base}}$ | Base reporting rate in non-suppressed areas |
@@ -154,7 +154,7 @@ $$P(\text{report} \mid u) = \begin{cases} \epsilon & \text{if } u \in V \\ p_{\t
 The leakage probability $\epsilon = 0.05$ ensures the void contains some noise points — making it indistinguishable from background noise to density-based methods, while remaining geometrically anomalous to DTM.
 
 | Component | Description |
-|----|----|
+|------------------------------------|------------------------------------|
 | Intensity function | Population density varies realistically across the study window |
 | Structural void | Populated but silenced central zone |
 | Leakage points | 5% of void cases escape into the record (real-world noise) |
@@ -195,7 +195,7 @@ The Distance-to-Measure function is computed for every pixel $x$ in the study gr
 $$d_{m_0}(x) = \sqrt{\frac{1}{k} \sum_{i=1}^k \|x - X_{(i)}\|^2}$$
 
 | Symbol | Meaning |
-|----|----|
+|------------------------------------|------------------------------------|
 | $x$ | Grid location being tested |
 | $X_{(i)}$ | The $i$-th nearest observed case |
 | $k = \lceil m_0 \cdot n \rceil$ | Neighbours needed to satisfy mass parameter $m_0$ |
@@ -217,7 +217,7 @@ $$d_{m_0}(x) = \sqrt{\frac{1}{k} \sum_{i=1}^k \|x - X_{(i)}\|^2}$$
 $$T(X) = \|\lambda\|_2 = \sqrt{\int \lambda(t)^2\, dt}$$
 
 | Symbol | Meaning |
-|----|----|
+|------------------------------------|------------------------------------|
 | $T(X)$ | Void Score for point pattern $X$ |
 | $\lambda(t)$ | Persistence Landscape — lifespan of topological features across scales $t$ |
 | Higher $T(X)$ | Data contains large, persistent holes surviving across many spatial scales |
@@ -268,7 +268,7 @@ At 1.0 km the detector is too short-sighted to bridge leakage points inside the 
 ## 6. Key Results Summary
 
 | Method | Detects void? | Classification in void | Verdict |
-|----|----|----|----|
+|------------------|------------------|------------------|------------------|
 | KDE | ❌ No | Low density — "safe area" | **FALSE** |
 | Relative Risk | ❌ No | Significant low-risk cluster ($RR \approx 0.40$) | **FALSE** |
 | **DTM (this work)** | ✅ **Yes** | High-intensity anomaly — "investigate" | **CORRECT** |
@@ -287,16 +287,16 @@ At 1.0 km the detector is too short-sighted to bridge leakage points inside the 
 
 ------------------------------------------------------------------------
 
-## 7. The Application — Geometry of Silence v2.1
+## 7. The Application — TDA v2.1
 
-The research is operationalised as a production-ready Shiny application (`app.R`, \~3,150 lines). A surveillance officer with a CSV exported from DHIS2 or KHIS can load their data, run spatial and temporal void analysis, and receive a classified, downloadable report without writing a line of code.
+The research is operationalized as a production-ready Shiny application (`app.R`, \~3,150 lines). A surveillance officer with a CSV exported from DHIS2 or KHIS can load their data, run spatial and temporal void analysis, and receive a classified, downloadable report without writing a line of code.
 
 ### Interface Layout
 
 ```         
 ┌─────────────────────────────────────────────────────────────────────┐
 │  TOPBAR                                                             │
-│  [logo] Geometry of Silence v2.1   [Map][Alerts][Temporal][Guide] ≡ │
+│  [logo] TDA v2.1   [Map][Alerts][Temporal][Guide] ≡ │
 ├───────────────────────────────────────┬─────────────────────────────┤
 │                                       │  SIDEBAR                    │
 │  MAIN CONTENT AREA                    │  (persistent — never hidden │
@@ -324,7 +324,7 @@ The research is operationalised as a production-ready Shiny application (`app.R`
 ### Progressive Stage Gates
 
 | Stage | Unlocks when | Controls revealed | Indicator |
-|----|----|----|----|
+|------------------|------------------|------------------|------------------|
 | **1** | App load | Disease selector + Reporting period | 🔓 Always open |
 | **2** | Disease + period selected | Data source pills | 🔒 → 🔓 |
 | **3** | Source selected | Load / upload controls | 🔒 → 🔓 |
@@ -366,7 +366,7 @@ The 0.1 floor prevents division-by-zero in sparsely populated units.
 **Completeness classes** (thresholds are disease-specific):
 
 | Class | O/E range | Meaning |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | **Critical** | \< `critical` | Severe surveillance gap — likely structural |
 | **Moderate** | `critical` – `moderate` | Significant gap — monitoring required |
 | **Mild** | `moderate` – `mild` | Below-adequate but not alarming |
@@ -443,7 +443,7 @@ For a Poisson process, $F \approx 1$. Structural silencing produces either a sta
 A two-state Hidden Markov Model fitted entirely in base R — no external package. The two latent states are **Silent** ($O/E <$ threshold) and **Reporting** ($O/E$ adequate).
 
 | Parameter | Value |
-|----|----|
+|------------------------------------|------------------------------------|
 | Emission | $\mathcal{N}(\mu_k, \sigma_k)$ per state |
 | Transition matrix $A$ | 2×2, initialised with persistence bias ($A_{ii} = 0.80$–$0.85$) |
 | Initial state distribution $\pi_0$ | $[0.3,\ 0.7]$ |
@@ -455,7 +455,7 @@ The fraction of periods assigned to the Silent state by Viterbi becomes $P(\text
 **Final decision rule:**
 
 | $P(\text{structural})$ | Label | Action |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | ≥ 0.60 | `STRUCTURAL` | Persistent barrier. Field investigation required. |
 | 0.35 – 0.60 | `INTERMITTENT` | Partial/seasonal suppression. Monitor 2 more periods. |
 | \< 0.35 | `STOCHASTIC` | Poisson noise. No structural barrier evident. |
@@ -477,7 +477,7 @@ A **six-period temporal demo** is embedded with structured STRUCTURAL and STOCHA
 **Required columns** (flexible aliasing):
 
 | Field | Primary | Also accepted as |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | Admin unit | `admin_unit` | `orgunit`, `org_unit`, `subcounty`, `facility` |
 | Reported cases | `reported_cases` | `cases`, `value`, `count` |
 | Population | `population` | `pop`, `total_pop` |
@@ -514,7 +514,7 @@ Path: Data Visualiser → Pivot Table → sub-county level → export CSV
 ### Supported Diseases
 
 | Disease | ICD | Reference rate | Unit | Critical O/E |
-|----|----|----|----|----|
+|---------------|---------------|---------------|---------------|---------------|
 | Malaria | B50–B54 | 225 | cases / 1,000 / yr | 0.20 |
 | Cholera / AWD | A00 | 3.5 | cases / 1,000 / yr | 0.15 |
 | Tuberculosis | A15–A19 | 220 | cases / 100,000 / yr | 0.30 |
@@ -620,7 +620,7 @@ Stability check
 ## 12. Outputs and Exports
 
 | Export | Format | Contents |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | **Spatial Brief** | Self-contained HTML → PDF | Summary stats, void list with causal labels, completeness breakdown, per-unit O/E table, citation |
 | **GeoJSON** | `.geojson` | Void polygons: ID, area km², admin units, mean O/E, deficit, population |
 | **Completeness CSV** | `.csv` | Per-unit: admin unit, county, O/E, deficit, class, expected, reported, population, lat, long |
@@ -693,8 +693,7 @@ All simulated data is regenerated from code on every run. There are no external 
 
 ``` bibtex
 @article{mboya2026geometry,
-  title   = {The Geometry of Silence: Topological Inference for Detecting
-             Structural Voids in Spatially Censored Epidemiological Data},
+  title   = {TDA Engine v1.0: A Computational Framework for Detecting Structural Voids in Spatially Censored Epidemiological Data},
   author  = {Mboya, Grold Otieno},
   journal = {Preprint on Zenodo},
   year    = {2026},
@@ -720,7 +719,7 @@ All simulated data is regenerated from code on every run. There are no external 
 ### DOI Quick Reference
 
 | Resource | DOI | Link |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | Preprint | 10.5281/zenodo.18244299 | [doi.org/10.5281/zenodo.18244299](https://doi.org/10.5281/zenodo.18244299) |
 | Application | 10.64898/2026.02.01.26345283 | [doi.org/10.64898/2026.02.01.26345283](https://doi.org/10.64898/2026.02.01.26345283) |
 | Live Demo | — | [gro7d.shinyapps.io/TDA-Engine-Preview](https://gro7d.shinyapps.io/TDA-Engine-Preview/) |
